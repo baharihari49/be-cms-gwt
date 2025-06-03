@@ -34,7 +34,6 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           sshpass -p 'c#)rgPMzNC2998@Vb4.M' rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./dist/ root@147.93.30.80:/var/www/be-cms-gwt/dist/
-          sshpass -p 'c#)rgPMzNC2998@Vb4.M' rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" .env root@147.93.30.80:/var/www/be-cms-gwt/
 
       - name: 🔒 Set Permissions
         run: |
