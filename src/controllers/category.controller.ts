@@ -3,6 +3,52 @@ import { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from '../prismaClient';
 import { AuthRequest } from '../types/auth';
+import { Category, Project, Prisma } from '@prisma/client';
+
+// Type definitions for includes
+type CategoryWithCount = Category & {
+  _count: {
+    projects: number;
+  };
+};
+
+type ProjectWithRelations = Project & {
+  technologies: Array<{
+    technology: {
+      id: number;
+      name: string;
+    };
+  }>;
+  features: Array<{
+    feature: {
+      id: number;
+      name: string;
+    };
+  }>;
+  metrics: {
+    id: number;
+    projectId: number;
+    users: string | null;
+    performance: string | null;
+    rating: string | null;
+    downloads: string | null;
+    revenue: string | null;
+    uptime: string | null;
+  } | null;
+  links: {
+    id: number;
+    projectId: number;
+    live: string | null;
+    github: string | null;
+    case: string | null;
+    demo: string | null;
+    docs: string | null;
+  } | null;
+};
+
+type CategoryWithProjects = Category & {
+  projects: ProjectWithRelations[];
+};
 
 // Validation schemas
 const createCategorySchema = z.object({
@@ -28,7 +74,7 @@ export class CategoryController {
       });
 
       // Transform to include actual count
-      const transformedCategories = categories.map(cat => ({
+      const transformedCategories = categories.map((cat: CategoryWithCount) => ({
         id: cat.id,
         label: cat.label,
         count: cat._count.projects,
@@ -68,7 +114,7 @@ export class CategoryController {
             }
           }
         }
-      });
+      }) as CategoryWithProjects | null;
 
       if (!category) {
         res.status(404).json({ error: 'Category not found' });
@@ -78,7 +124,7 @@ export class CategoryController {
       // Transform projects
       const transformedCategory = {
         ...category,
-        projects: category.projects.map(project => ({
+        projects: category.projects.map((project: ProjectWithRelations) => ({
           ...project,
           technologies: project.technologies.map(pt => pt.technology.name),
           features: project.features.map(pf => pf.feature.name)
@@ -159,9 +205,11 @@ export class CategoryController {
         return;
       }
       
-      if ((error as any).code === 'P2025') {
-        res.status(404).json({ error: 'Category not found' });
-        return;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          res.status(404).json({ error: 'Category not found' });
+          return;
+        }
       }
       
       console.error('Update category error:', error);
@@ -193,9 +241,11 @@ export class CategoryController {
 
       res.json({ message: 'Category deleted successfully' });
     } catch (error) {
-      if ((error as any).code === 'P2025') {
-        res.status(404).json({ error: 'Category not found' });
-        return;
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2025') {
+          res.status(404).json({ error: 'Category not found' });
+          return;
+        }
       }
       
       console.error('Delete category error:', error);
@@ -209,7 +259,7 @@ export class CategoryController {
       const categories = await prisma.category.findMany();
 
       const updates = await Promise.all(
-        categories.map(async (category) => {
+        categories.map(async (category: Category) => {
           const count = await prisma.project.count({
             where: { categoryId: category.id }
           });
