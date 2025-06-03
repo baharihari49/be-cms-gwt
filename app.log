@@ -22,3 +22,6 @@
 [32minfo[39m: ::1 - - [03/Jun/2025:13:35:41 +0000] "POST /api/projects HTTP/1.1" 201 947 "-" "Apidog/1.0.0 (https://apidog.com)"
 [32minfo[39m: ::1 - - [03/Jun/2025:13:45:03 +0000] "GET /api/projects HTTP/1.1" 200 964 "-" "Apidog/1.0.0 (https://apidog.com)"
 [32minfo[39m: ::1 - - [03/Jun/2025:13:45:45 +0000] "GET /api/categories HTTP/1.1" 200 147 "-" "Apidog/1.0.0 (https://apidog.com)"
+[32minfo[39m: ::1 - - [03/Jun/2025:19:08:45 +0000] "GET / HTTP/1.1" 200 93 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+[32minfo[39m: ::1 - - [03/Jun/2025:19:11:07 +0000] "GET / HTTP/1.1" 200 141 "-" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"
+[32minfo[39m: ::1 - - [03/Jun/2025:19:11:08 +0000] "GET /favicon.ico HTTP/1.1" 404 38 "http://localhost:3000/" "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36"

@@ -1,5 +1,16 @@
+# Node modules
 node_modules
+
 # Keep environment variables out of version control
 .env
 
+# Build output
+/dist/
+
 /src/generated/prisma
+
+# Optional: logs, coverage, and system files
+npm-debug.log
+yarn-error.log
+.DS_Store
+coverage/

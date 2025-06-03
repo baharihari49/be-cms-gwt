@@ -1,0 +1,50 @@
+name: Deployment of CMS BE for GWT
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: 🚚 Get latest code
+        uses: actions/checkout@v4
+
+      - name: 🛠️ Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+      - name: 📦 Install Dependencies
+        run: npm install --legacy-peer-deps
+
+      - name: 🔄 Prisma Generate
+        run: npx prisma generate
+
+      - name: 🏗️ Build Project (Transpile TS to JS)
+        run: npm run build
+
+      - name: 🚀 Deploy to Production Server via SSH
+        if: github.ref == 'refs/heads/main'
+        run: |
+          sshpass -p 'c#)rgPMzNC2998@Vb4.M' rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./dist/ root@147.93.30.80:/var/www/be-cms-gwt/dist/
+          sshpass -p 'c#)rgPMzNC2998@Vb4.M' rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" .env root@147.93.30.80:/var/www/be-cms-gwt/
+
+      - name: 🔒 Set Permissions
+        run: |
+          sshpass -p 'c#)rgPMzNC2998@Vb4.M' ssh -o StrictHostKeyChecking=no root@147.93.30.80 '
+            chmod -R 755 /var/www/be-cms-gwt &&
+            chown -R www-data:www-data /var/www/be-cms-gwt
+          '
+
+      - name: 🔁 Restart PM2 Process
+        run: |
+          sshpass -p 'c#)rgPMzNC2998@Vb4.M' ssh -o StrictHostKeyChecking=no root@147.93.30.80 '
+            pm2 restart be-cms-gwt || pm2 start ecosystem.config.js
+          '
