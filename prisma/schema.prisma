@@ -1,0 +1,190 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+/// Enum untuk Role, misal USER atau ADMIN
+enum Role {
+  USER
+  ADMIN
+}
+
+/// Model User dengan field role
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users") // jika ingin nama tabel di DB jadi "users"
+}
+
+
+model Category {
+  id        String    @id // 'web', 'mobile', 'ecommerce', etc
+  label     String
+  count     Int       @default(0)
+  projects  Project[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@map("categories")
+}
+
+model Project {
+  id          Int                @id @default(autoincrement())
+  title       String
+  subtitle    String
+  categoryId  String
+  category    Category           @relation(fields: [categoryId], references: [id])
+  type        String
+  description String             @db.Text
+  image       String?
+  client      String?
+  duration    String?
+  year        String?
+  status      ProjectStatus      @default(DEVELOPMENT)
+  icon        String?
+  color       String?            // gradient color class
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  
+  // Relations
+  technologies ProjectTechnology[]
+  features     ProjectFeature[]
+  metrics      ProjectMetric?
+  links        ProjectLink?
+
+  @@index([categoryId])
+  @@index([status])
+  @@map("projects")
+}
+
+model Technology {
+  id       Int                 @id @default(autoincrement())
+  name     String              @unique
+  projects ProjectTechnology[]
+
+  @@map("technologies")
+}
+
+model ProjectTechnology {
+  id           Int        @id @default(autoincrement())
+  projectId    Int
+  technologyId Int
+  project      Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  technology   Technology @relation(fields: [technologyId], references: [id])
+
+  @@unique([projectId, technologyId])
+  @@index([projectId])
+  @@index([technologyId])
+  @@map("project_technologies")
+}
+
+model Feature {
+  id       Int              @id @default(autoincrement())
+  name     String           @unique
+  projects ProjectFeature[]
+
+  @@map("features")
+}
+
+model ProjectFeature {
+  id        Int     @id @default(autoincrement())
+  projectId Int
+  featureId Int
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  feature   Feature @relation(fields: [featureId], references: [id])
+
+  @@unique([projectId, featureId])
+  @@index([projectId])
+  @@index([featureId])
+  @@map("project_features")
+}
+
+model ProjectMetric {
+  id          Int     @id @default(autoincrement())
+  projectId   Int     @unique
+  project     Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  users       String?
+  performance String?
+  rating      String?
+  // Bisa tambahkan metric lain sesuai kebutuhan
+  downloads   String?
+  revenue     String?
+  uptime      String?
+
+  @@map("project_metrics")
+}
+
+model ProjectLink {
+  id        Int     @id @default(autoincrement())
+  projectId Int     @unique
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  live      String?
+  github    String?
+  case      String? // case study link
+  demo      String?
+  docs      String?
+
+  @@map("project_links")
+}
+
+enum ProjectStatus {
+  DEVELOPMENT
+  BETA
+  LIVE
+  ARCHIVED
+  MAINTENANCE
+}
+
+// Optional: Model untuk menyimpan testimonial atau review
+model ProjectReview {
+  id         Int      @id @default(autoincrement())
+  projectId  Int
+  author     String
+  role       String?  // e.g., "CEO", "CTO"
+  company    String?
+  content    String   @db.Text
+  rating     Float?
+  createdAt  DateTime @default(now())
+
+  @@index([projectId])
+  @@map("project_reviews")
+}
+
+// Optional: Model untuk screenshots/gallery
+model ProjectImage {
+  id         Int      @id @default(autoincrement())
+  projectId  Int
+  url        String
+  caption    String?
+  order      Int      @default(0)
+  type       ImageType @default(SCREENSHOT)
+  createdAt  DateTime @default(now())
+
+  @@index([projectId])
+  @@map("project_images")
+}
+
+enum ImageType {
+  SCREENSHOT
+  MOCKUP
+  LOGO
+  DIAGRAM
+  OTHER
+}
