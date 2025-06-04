@@ -1,5 +1,4 @@
 import express, { Application, Request, Response } from 'express';
-import helloRouter from './routes/hello.route';
 import loggerMiddleware from './middlewares/logger.middleware';
 import morgan from 'morgan';
 import winston from 'winston';
@@ -7,6 +6,7 @@ import userRoute from './routes/user.route';
 import authRoute from './routes/auth.route';
 import projectRoute from './routes/project.route';
 import categoryRoute from './routes/category.routes';
+import blogRoute from './routes/blog/index';
 
 const app: Application = express();
 
@@ -39,11 +39,11 @@ app.use(express.json());
 app.use(loggerMiddleware);
 
 // Daftarkan route
-app.use('/api/hello', helloRouter);
 app.use('/api/users', userRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/projects', projectRoute);
 app.use('/api/categories', categoryRoute);
+app.use('/api/blogs', blogRoute)
 
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req: Request, res: Response) => {

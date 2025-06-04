@@ -188,3 +188,133 @@ enum ImageType {
   DIAGRAM
   OTHER
 }
+
+
+// Blog Posts Schema - Tidak konflik dengan schema Project yang sudah ada
+
+model BlogAuthor {
+  id        String   @id @default(cuid())
+  name      String
+  email     String?  @unique
+  bio       String?  @db.Text
+  avatar    String?
+  posts     BlogPost[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("blog_authors")
+}
+
+model BlogCategory {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String?  @unique
+  description String?
+  icon        String?
+  color       String?  // Untuk gradient color seperti "from-blue-500 to-cyan-400"
+  posts       BlogPost[]
+  postCount   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_categories")
+}
+
+model BlogTag {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  slug      String?    @unique
+  posts     BlogPostTag[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("blog_tags")
+}
+
+model BlogPost {
+  id         String     @id @default(cuid())
+  title      String
+  slug       String?    @unique
+  excerpt    String     @db.Text
+  content    String?    @db.Text
+  image      String?
+  featured   Boolean    @default(false)
+  published  Boolean    @default(true)
+  readTime   String?    // e.g., "8 min read"
+  
+  // Relations
+  authorId   String
+  author     BlogAuthor     @relation(fields: [authorId], references: [id])
+  
+  categoryId String
+  category   BlogCategory   @relation(fields: [categoryId], references: [id])
+  
+  tags       BlogPostTag[]
+  stats      BlogPostStats?
+  comments   BlogComment[]
+  
+  // Timestamps
+  publishedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([authorId])
+  @@index([categoryId])
+  @@index([featured])
+  @@index([published])
+  @@index([publishedAt])
+  @@map("blog_posts")
+}
+
+model BlogPostTag {
+  postId String
+  post   BlogPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  tagId  String
+  tag    BlogTag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  
+  @@id([postId, tagId])
+  @@index([postId])
+  @@index([tagId])
+  @@map("blog_post_tags")
+}
+
+model BlogPostStats {
+  id       String @id @default(cuid())
+  postId   String @unique
+  post     BlogPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  views    Int    @default(0)
+  likes    Int    @default(0)
+  comments Int    @default(0)
+  shares   Int    @default(0)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([postId])
+  @@map("blog_post_stats")
+}
+
+// Optional: Untuk menyimpan komentar blog
+model BlogComment {
+  id        String   @id @default(cuid())
+  content   String   @db.Text
+  postId    String
+  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  
+  // Bisa menggunakan User dari schema yang sudah ada atau buat author name/email
+  authorName  String?
+  authorEmail String?
+  
+  parentId  String?
+  parent    BlogComment? @relation("BlogCommentReplies", fields: [parentId], references: [id])
+  replies   BlogComment[] @relation("BlogCommentReplies")
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@index([postId])
+  @@index([parentId])
+  @@map("blog_comments")
+}
