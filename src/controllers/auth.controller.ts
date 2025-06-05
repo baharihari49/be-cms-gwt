@@ -31,9 +31,9 @@ const JWT_EXPIRES_IN = process.env.JWT_EXPIRES_IN || '7d';
 // Helper function to generate token - simplified version
 const generateToken = (payload: JwtPayload): string => {
   return jwt.sign(
-    payload, 
-    JWT_SECRET, 
-    { 
+    payload,
+    JWT_SECRET,
+    {
       expiresIn: JWT_EXPIRES_IN,
       algorithm: 'HS256'
     } as any // bypass strict type checking
@@ -84,19 +84,21 @@ export class AuthController {
       });
 
       res.status(201).json({
+        success: true,
         message: 'User registered successfully',
         user,
         token
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ 
-          error: 'Validation error', 
-          details: error.errors 
+        res.status(400).json({
+          success: false,
+          error: 'Validation error',
+          details: error.errors
         });
         return;
       }
-      
+
       console.error('Register error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -136,6 +138,7 @@ export class AuthController {
       });
 
       res.json({
+        success: true,
         message: 'Login successful',
         user: {
           id: user.id,
@@ -147,13 +150,14 @@ export class AuthController {
       });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ 
-          error: 'Validation error', 
-          details: error.errors 
+        res.status(400).json({
+          success: false,
+          error: 'Validation error',
+          details: error.errors
         });
         return;
       }
-      
+
       console.error('Login error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }
@@ -220,7 +224,7 @@ export class AuthController {
     try {
       // Implement token blacklist if using Redis
       // For now, logout is handled client-side
-      
+
       res.json({ message: 'Logout successful' });
     } catch (error) {
       console.error('Logout error:', error);
@@ -270,13 +274,13 @@ export class AuthController {
       res.json({ message: 'Password changed successfully' });
     } catch (error) {
       if (error instanceof z.ZodError) {
-        res.status(400).json({ 
-          error: 'Validation error', 
-          details: error.errors 
+        res.status(400).json({
+          error: 'Validation error',
+          details: error.errors
         });
         return;
       }
-      
+
       console.error('Change password error:', error);
       res.status(500).json({ error: 'Internal server error' });
     }

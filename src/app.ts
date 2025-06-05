@@ -1,4 +1,5 @@
 import express, { Application, Request, Response } from 'express';
+import cors from 'cors';                         // ← tambahkan ini
 import loggerMiddleware from './middlewares/logger.middleware';
 import morgan from 'morgan';
 import winston from 'winston';
@@ -32,6 +33,30 @@ app.use(
   })
 );
 
+// Konfigurasi CORS
+const allowedOrigins = [
+  'http://localhost:3000',
+  'https://your-domain.com',
+  // tambahkan origin lain sesuai kebutuhan
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // jika request bersumber dari origin yang terdaftar, allow,
+      // atau jika tidak ada origin (misal dari Postman), juga allow
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    credentials: true,        // jika perlu mengizinkan cookie/auth headers
+    allowedHeaders: ['Content-Type', 'Authorization']
+  })
+);
+
 // Middleware bawaan Express untuk parsing JSON body
 app.use(express.json());
 
@@ -43,7 +68,7 @@ app.use('/api/users', userRoute);
 app.use('/api/auth', authRoute);
 app.use('/api/projects', projectRoute);
 app.use('/api/categories', categoryRoute);
-app.use('/api/blogs', blogRoute)
+app.use('/api/blogs', blogRoute);
 
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req: Request, res: Response) => {

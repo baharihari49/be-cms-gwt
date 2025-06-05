@@ -82,7 +82,7 @@ export class CategoryController {
         updatedAt: cat.updatedAt
       }));
 
-      res.json({ categories: transformedCategories });
+      res.json({success: true, categories: transformedCategories });
     } catch (error) {
       console.error('Get categories error:', error);
       res.status(500).json({ error: 'Internal server error' });
