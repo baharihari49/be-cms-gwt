@@ -37,7 +37,7 @@ export const getAllTags = async (req: Request, res: Response): Promise<void> => 
       }
     });
     
-    res.json(tags);
+    res.json({success: true, tags });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch tags', details: error });
   }

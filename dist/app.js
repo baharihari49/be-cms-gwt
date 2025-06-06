@@ -32,7 +32,8 @@ app.use((0, morgan_1.default)('combined', {
 // Konfigurasi CORS
 const allowedOrigins = [
     'http://localhost:3000',
-    'http://fe-gwt.baharihari.com/',
+    'https://fe-gwt.baharihari.com/',
+    'https://fe-gwt.baharihari.com',
     // tambahkan origin lain sesuai kebutuhan
 ];
 app.use((0, cors_1.default)({

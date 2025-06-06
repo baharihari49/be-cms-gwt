@@ -20,7 +20,7 @@ export const createCategory = async (req: Request, res: Response): Promise<void>
       }
     });
     
-    res.status(201).json(category);
+    res.status(201).json({success: true, category });
   } catch (error) {
     res.status(500).json({ error: 'Failed to create category', details: error });
   }
@@ -40,7 +40,7 @@ export const getAllCategories = async (req: Request, res: Response): Promise<voi
       }
     });
     
-    res.json(categories);
+    res.json({success: true, categories });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch categories', details: error });
   }

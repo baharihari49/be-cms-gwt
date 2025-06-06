@@ -363,28 +363,28 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
       categoryId,
       tags,
       readTime,
-      published
+      published,
     } = req.body;
 
     if (!id) {
-      res.status(400).json({ error: 'Post ID is required' });
+      res.status(400).json({ error: "Post ID is required" });
       return;
     }
 
-    // Check if post exists
+    // Cek apakah post ada
     const existingPost = await prisma.blogPost.findUnique({
-      where: { id }
+      where: { id },
     });
 
     if (!existingPost) {
       res.status(404).json({
-        error: 'Post not found',
-        message: `No post found with ID: ${id}`
+        error: "Post not found",
+        message: `No post found with ID: ${id}`,
       });
       return;
     }
 
-    // Prepare update data
+    // Mempersiapkan objek data untuk update
     const updateData: any = {};
 
     if (excerpt !== undefined) updateData.excerpt = excerpt;
@@ -394,32 +394,38 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
     if (categoryId !== undefined) updateData.categoryId = categoryId;
     if (readTime !== undefined) updateData.readTime = readTime;
 
-    // Handle published status change
+    // Handle perubahan published status
     if (published !== undefined) {
-      updateData.published = Boolean(published);
-      if (Boolean(published) && !existingPost.publishedAt) {
-        updateData.publishedAt = new Date();
-      } else if (!Boolean(published)) {
-        updateData.publishedAt = null;
+      const isPublished = Boolean(published);
+      updateData.published = isPublished;
+
+      if (isPublished) {
+        // Jika sebelumnya belum pernah dipublish, beri publishedAt baru
+        if (!existingPost.publishedAt) {
+          updateData.publishedAt = new Date();
+        }
+        // Jika sudah punya publishedAt, biarkan apa adanya (tidak perlu di‐override)
       }
+      // Jika di‐unpublish (isPublished = false), kita TIDAK mengirim publishedAt sama sekali
+      // karena schema kemungkinan non‐nullable. Jadi publishedAt tetap seperti sebelumnya.
     }
 
-    // Update slug if title changed
+    // Jika judul berubah, update slug-nya
     if (title && title !== existingPost.title) {
       const newSlug = generateSlug(title);
 
-      // Check if new slug already exists
+      // Pastikan slug baru belum dipakai post lain
       const slugExists = await prisma.blogPost.findFirst({
         where: {
           slug: newSlug,
-          id: { not: id }
-        }
+          id: { not: id },
+        },
       });
 
       if (slugExists) {
         res.status(400).json({
-          error: 'Title conflict',
-          message: 'A post with this title already exists'
+          error: "Title conflict",
+          message: "A post with this title already exists",
         });
         return;
       }
@@ -428,41 +434,43 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
       updateData.slug = newSlug;
     }
 
-    // Handle tags update
+    // Handle update tags
     if (tags !== undefined) {
-      // Remove existing tags
+      // Hapus relasi tag lama
       await prisma.blogPostTag.deleteMany({
-        where: { postId: id }
+        where: { postId: id },
       });
 
-      // Add new tags if provided
-      if (tags.length > 0) {
+      // Jika ada tags baru, tambahkan
+      if (Array.isArray(tags) && tags.length > 0) {
         updateData.tags = {
           create: tags.map((tagId: string) => ({
-            tag: { connect: { id: tagId } }
-          }))
+            tag: { connect: { id: tagId } },
+          })),
         };
       }
+      // Jika tags adalah array kosong, berarti hapus semua tag dan jangan create apa‐apa.
     }
 
+    // Selalu update updatedAt
     updateData.updatedAt = new Date();
 
     const post = await prisma.blogPost.update({
       where: { id },
       data: updateData,
-      include: getPostInclude()
+      include: getPostInclude(),
     });
 
     res.json({
       success: true,
       post,
-      message: 'Post updated successfully'
+      message: "Post updated successfully",
     });
   } catch (error: any) {
-    console.error('Update post error:', error);
+    console.error("Update post error:", error);
     res.status(500).json({
-      error: 'Failed to update post',
-      details: error.message || 'Internal server error'
+      error: "Failed to update post",
+      details: error.message || "Internal server error",
     });
   }
 };

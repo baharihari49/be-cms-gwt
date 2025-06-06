@@ -38,7 +38,7 @@ export const getAllAuthors = async (req: Request, res: Response): Promise<void> 
       }
     });
     
-    res.json(authors);
+    res.json({success: true, authors });
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch authors', details: error });
   }
