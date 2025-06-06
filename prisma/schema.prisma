@@ -204,12 +204,12 @@ model BlogAuthor {
   bio       String?  @db.Text
   avatar    String?
   posts     BlogPost[]
+  comments  BlogComment[] // Tambahkan ini
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@map("blog_authors")
 }
-
 
 model BlogCategory {
   id          String   @id @default(cuid())
@@ -309,7 +309,11 @@ model BlogComment {
   postId    String
   post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   
-  // Bisa menggunakan User dari schema yang sudah ada atau buat author name/email
+  // Tambahkan relasi ke BlogAuthor
+  authorId    String?
+  author      BlogAuthor? @relation(fields: [authorId], references: [id])
+  
+  // Atau tetap pakai field string untuk guest comments
   authorName  String?
   authorEmail String?
   
@@ -322,5 +326,6 @@ model BlogComment {
   
   @@index([postId])
   @@index([parentId])
+  @@index([authorId])
   @@map("blog_comments")
 }
