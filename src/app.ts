@@ -36,7 +36,7 @@ app.use(
 // Konfigurasi CORS
 const allowedOrigins = [
   'http://localhost:3000',
-  'https://your-domain.com',
+  'http://fe-gwt.baharihari.com/',
   // tambahkan origin lain sesuai kebutuhan
 ];
 
