@@ -37,6 +37,7 @@ app.use(
 const allowedOrigins = [
   'http://localhost:3000',
   'https://fe-gwt.baharihari.com/',
+  'https://fe-gwt.baharihari.com',
   // tambahkan origin lain sesuai kebutuhan
 ];
 
