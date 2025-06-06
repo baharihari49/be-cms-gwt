@@ -33,6 +33,7 @@ model User {
   @@map("users") // jika ingin nama tabel di DB jadi "users"
 }
 
+// schema.prisma
 
 model Category {
   id        String    @id // 'web', 'mobile', 'ecommerce', etc
@@ -68,6 +69,8 @@ model Project {
   features     ProjectFeature[]
   metrics      ProjectMetric?
   links        ProjectLink?
+  images       ProjectImage[]
+  reviews      ProjectReview[]
 
   @@index([categoryId])
   @@index([status])
@@ -156,6 +159,7 @@ enum ProjectStatus {
 model ProjectReview {
   id         Int      @id @default(autoincrement())
   projectId  Int
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   author     String
   role       String?  // e.g., "CEO", "CTO"
   company    String?
@@ -171,6 +175,7 @@ model ProjectReview {
 model ProjectImage {
   id         Int      @id @default(autoincrement())
   projectId  Int
+  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   url        String
   caption    String?
   order      Int      @default(0)
@@ -199,6 +204,7 @@ model BlogAuthor {
   bio       String?  @db.Text
   avatar    String?
   posts     BlogPost[]
+  comments  BlogComment[] // Tambahkan ini
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -303,7 +309,11 @@ model BlogComment {
   postId    String
   post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
   
-  // Bisa menggunakan User dari schema yang sudah ada atau buat author name/email
+  // Tambahkan relasi ke BlogAuthor
+  authorId    String?
+  author      BlogAuthor? @relation(fields: [authorId], references: [id])
+  
+  // Atau tetap pakai field string untuk guest comments
   authorName  String?
   authorEmail String?
   
@@ -316,5 +326,6 @@ model BlogComment {
   
   @@index([postId])
   @@index([parentId])
+  @@index([authorId])
   @@map("blog_comments")
 }

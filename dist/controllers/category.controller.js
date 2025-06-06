@@ -35,7 +35,7 @@ class CategoryController {
                 createdAt: cat.createdAt,
                 updatedAt: cat.updatedAt
             }));
-            res.json({ categories: transformedCategories });
+            res.json({ success: true, categories: transformedCategories });
         }
         catch (error) {
             console.error('Get categories error:', error);

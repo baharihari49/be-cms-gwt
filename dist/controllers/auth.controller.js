@@ -72,6 +72,7 @@ class AuthController {
                 role: user.role
             });
             res.status(201).json({
+                success: true,
                 message: 'User registered successfully',
                 user,
                 token
@@ -80,6 +81,7 @@ class AuthController {
         catch (error) {
             if (error instanceof zod_1.z.ZodError) {
                 res.status(400).json({
+                    success: false,
                     error: 'Validation error',
                     details: error.errors
                 });
@@ -114,6 +116,7 @@ class AuthController {
                 role: user.role
             });
             res.json({
+                success: true,
                 message: 'Login successful',
                 user: {
                     id: user.id,
@@ -127,6 +130,7 @@ class AuthController {
         catch (error) {
             if (error instanceof zod_1.z.ZodError) {
                 res.status(400).json({
+                    success: false,
                     error: 'Validation error',
                     details: error.errors
                 });
