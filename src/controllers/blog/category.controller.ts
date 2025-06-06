@@ -65,7 +65,7 @@ export const getCategoryById = async (req: Request, res: Response): Promise<void
       return;
     }
     
-    res.json(category);
+    res.json({success: true, category});
   } catch (error) {
     res.status(500).json({ error: 'Failed to fetch category', details: error });
   }
