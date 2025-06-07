@@ -9,9 +9,20 @@
   "scripts": {
     "seed": "tsx prisma/seed.ts",
     "seed:blog": "tsx prisma/seeders/blog.seeder.ts",
-    "build": "tsc",
+    "build": "npm run schema:build && npm run db:generate && tsc",
     "start": "node dist/server.js",
-    "dev": "ts-node-dev --respawn --transpile-only src/server.ts"
+    "dev": "npm run schema:build && ts-node-dev --respawn --transpile-only src/server.ts",
+    "schema:build": "node scripts/build-schema.js",
+    "schema:watch": "nodemon --watch prisma/models --watch prisma/schema.prisma --exec \"npm run schema:build\"",
+    "schema:validate": "npm run schema:build && prisma validate --schema=prisma/schema-combined.prisma",
+    "db:generate": "npm run schema:build && prisma generate --schema=prisma/schema-combined.prisma",
+    "db:push": "npm run schema:build && prisma db push --schema=prisma/schema-combined.prisma",
+    "db:migrate": "npm run schema:build && prisma migrate dev --schema=prisma/schema-combined.prisma",
+    "db:migrate:deploy": "npm run schema:build && prisma migrate deploy --schema=prisma/schema-combined.prisma",
+    "db:studio": "npm run schema:build && prisma studio --schema=prisma/schema-combined.prisma",
+    "db:reset": "npm run schema:build && prisma migrate reset --schema=prisma/schema-combined.prisma",
+    "dev:watch": "concurrently \"npm run schema:watch\" \"npm run dev:server\"",
+    "dev:server": "ts-node-dev --respawn --transpile-only src/server.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
@@ -25,6 +36,7 @@
     "helmet": "^8.1.0",
     "jsonwebtoken": "^9.0.2",
     "morgan": "^1.10.0",
+    "nodemon": "^3.1.10",
     "winston": "^3.17.0",
     "zod": "^3.25.48"
   },
@@ -38,6 +50,7 @@
     "@types/winston": "^2.4.4",
     "@typescript-eslint/eslint-plugin": "^8.33.1",
     "@typescript-eslint/parser": "^8.33.1",
+    "concurrently": "^9.1.2",
     "eslint": "^9.28.0",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-prettier": "^5.4.1",

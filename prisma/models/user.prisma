@@ -1,0 +1,19 @@
+
+/// Enum untuk Role, misal USER atau ADMIN
+enum Role {
+  USER
+  ADMIN
+}
+
+/// Model User dengan field role
+model User {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(USER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users") // jika ingin nama tabel di DB jadi "users"
+}

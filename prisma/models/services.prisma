@@ -1,0 +1,37 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+model Service {
+  id          Int      @id @default(autoincrement())
+  icon        String   // Store icon name as string
+  title       String
+  subtitle    String
+  description String   @db.Text
+  color       String   // Store gradient color classes
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  features     ServiceFeature[]
+  technologies ServiceTechnology[]
+
+  @@map("services")
+}
+
+model ServiceFeature {
+  id        Int     @id @default(autoincrement())
+  name      String
+  serviceId Int
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_features")
+}
+
+model ServiceTechnology {
+  id        Int     @id @default(autoincrement())
+  name      String
+  serviceId Int
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@map("service_technologies")
+}
