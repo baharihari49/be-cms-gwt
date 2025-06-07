@@ -1,16 +1,16 @@
 // controllers/projectController.ts (Improved version with ErrorHandler)
 import { Request, Response } from 'express';
-import { AuthRequest } from '../types/auth';
-import { ProjectService } from '../services/projectService';
-import { ErrorHandler } from '../utils/errorHandler';
+import { AuthRequest } from '../../types/auth';
+import { ProjectService } from '../../services/projectService';
+import { ErrorHandler } from '../../utils/errorHandler';
 import {
   createProjectSchema,
   updateProjectSchema,
   querySchema,
   addImageSchema,
   addReviewSchema
-} from '../schemas/projectSchemas';
-import { CreateProjectImage, CreateProjectReview } from '../types/project';
+} from '../../schemas/projectSchemas';
+import { CreateProjectImage, CreateProjectReview } from '../../types/project';
 
 export class ProjectController {
   // Get all projects with filters

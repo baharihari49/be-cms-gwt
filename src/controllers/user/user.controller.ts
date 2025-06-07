@@ -1,6 +1,6 @@
 // src/controllers/user.controller.ts
 import { Request, Response, NextFunction, RequestHandler } from 'express';
-import prisma from '../prismaClient';
+import prisma from '../../prismaClient';
 
 /**
  * Handler: GET /api/users

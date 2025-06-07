@@ -1,0 +1,12 @@
+model Technology {
+    id          Int     @id @default(autoincrement())
+    name        String  @unique
+    icon        String?
+    description String?
+
+    // relations
+    projects      ProjectTechnology[]
+    services      ServiceTechnology[]
+
+    @@map("technologies")
+}

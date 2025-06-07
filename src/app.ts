@@ -8,6 +8,7 @@ import authRoute from './routes/auth.route';
 import projectRoute from './routes/project.route';
 import categoryRoute from './routes/category.routes';
 import blogRoute from './routes/blog/index';
+import technologyRoute from './routes/technology/index';
 
 const app: Application = express();
 
@@ -70,6 +71,7 @@ app.use('/api/auth', authRoute);
 app.use('/api/projects', projectRoute);
 app.use('/api/categories', categoryRoute);
 app.use('/api/blogs', blogRoute);
+app.use('/api/technologies', technologyRoute);
 
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req: Request, res: Response) => {

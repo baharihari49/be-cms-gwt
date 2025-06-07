@@ -1,6 +1,6 @@
 // routes/categoryRoutes.ts
 import { Router } from 'express';
-import { CategoryController } from '../controllers/category.controller';
+import { CategoryController } from '../controllers/projects/category.controller';
 import { verifyToken, isAdmin } from '../middlewares/auth.middleware';
 
 const router = Router();

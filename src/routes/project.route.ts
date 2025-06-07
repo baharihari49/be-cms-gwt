@@ -1,6 +1,6 @@
 // routes/projectRoutes.ts
 import { Router } from 'express';
-import { ProjectController } from '../controllers/project.controller';
+import { ProjectController } from '../controllers/projects/project.controller';
 import { verifyToken, isAdmin } from '../middlewares/auth.middleware';
 
 const router = Router();

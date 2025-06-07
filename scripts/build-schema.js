@@ -12,6 +12,7 @@ const schemaFiles = [
   'models/project.prisma', 
   'models/blog.prisma',
   'models/services.prisma',
+  'models/tecnologies.prisma',
 ];
 
 console.log('🔨 Building Prisma schema...');

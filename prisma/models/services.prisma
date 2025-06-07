@@ -3,11 +3,11 @@
 
 model Service {
   id          Int      @id @default(autoincrement())
-  icon        String   // Store icon name as string
+  icon        String // Store icon name as string
   title       String
   subtitle    String
   description String   @db.Text
-  color       String   // Store gradient color classes
+  color       String // Store gradient color classes
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -28,10 +28,15 @@ model ServiceFeature {
 }
 
 model ServiceTechnology {
-  id        Int     @id @default(autoincrement())
-  name      String
-  serviceId Int
-  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  id           Int     @id @default(autoincrement())
+  name         String
+  serviceId    Int
+  technologyId Int
+  technology   Technology @relation(fields: [technologyId], references: [id])
+  service      Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
+  @@unique([serviceId, technologyId])
+  @@index([serviceId])
+  @@index([technologyId])
   @@map("service_technologies")
 }

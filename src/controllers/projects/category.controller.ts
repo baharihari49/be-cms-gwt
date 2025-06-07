@@ -1,8 +1,8 @@
 // controllers/categoryController.ts
 import { Request, Response } from 'express';
 import { z } from 'zod';
-import prisma from '../prismaClient';
-import { AuthRequest } from '../types/auth';
+import prisma from '../../prismaClient';
+import { AuthRequest } from '../../types/auth';
 import { Category, Project, Prisma } from '@prisma/client';
 
 // Type definitions for includes

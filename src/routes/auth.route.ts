@@ -1,6 +1,6 @@
 // routes/authRoutes.ts
 import { Router } from 'express';
-import { AuthController } from '../controllers/auth.controller';
+import { AuthController } from '../controllers/auth/auth.controller';
 import { verifyToken } from '../middlewares/auth.middleware';
 
 const router = Router();

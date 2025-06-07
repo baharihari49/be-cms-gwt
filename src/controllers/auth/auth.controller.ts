@@ -3,8 +3,8 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
-import prisma from '../prismaClient'; // Sesuaikan dengan export Anda
-import { AuthRequest, JwtPayload } from '../types/auth';
+import prisma from '../../prismaClient'; // Sesuaikan dengan export Anda
+import { AuthRequest, JwtPayload } from '../../types/auth';
 
 // Validation schemas
 const registerSchema = z.object({
