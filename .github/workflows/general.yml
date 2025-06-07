@@ -20,30 +20,82 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: "18"
+          cache: 'npm'
 
       - name: 📦 Install Dependencies
         run: npm install --legacy-peer-deps
 
+      - name: 🔨 Build Prisma Schema
+        run: npm run schema:build
+
       - name: 🔄 Prisma Generate
-        run: npx prisma generate
+        run: npx prisma generate --schema=prisma/schema-combined.prisma
+
+      - name: ✅ Validate Schema
+        run: npm run schema:validate
 
       - name: 🏗️ Build Project (Transpile TS to JS)
         run: npm run build
 
+      - name: 📋 List Build Output
+        run: |
+          echo "Build completed. Contents:"
+          ls -la dist/
+          echo "Schema files:"
+          ls -la prisma/
+
       - name: 🚀 Deploy to Production Server via SSH
         if: github.ref == 'refs/heads/main'
         run: |
-          sshpass -p 'c#)rgPMzNC2998@Vb4.M' rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./dist/ root@147.93.30.80:/var/www/be-cms-gwt/dist/
+          echo "Deploying application files..."
+          sshpass -p '${{ secrets.SERVER_PASSWORD }}' rsync -avz --delete \
+            --exclude=node_modules \
+            --exclude=.git \
+            --exclude=.env \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./dist/ root@${{ secrets.SERVER_HOST }}:/var/www/be-cms-gwt/dist/
+
+      - name: 🗄️ Deploy Schema and Dependencies
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Deploying schema and package files..."
+          sshpass -p '${{ secrets.SERVER_PASSWORD }}' rsync -avz \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./prisma/schema-combined.prisma root@${{ secrets.SERVER_HOST }}:/var/www/be-cms-gwt/prisma/schema.prisma
+          sshpass -p '${{ secrets.SERVER_PASSWORD }}' rsync -avz \
+            -e "ssh -o StrictHostKeyChecking=no" \
+            ./package.json root@${{ secrets.SERVER_HOST }}:/var/www/be-cms-gwt/
+
+      - name: 🔧 Install Dependencies on Server
+        if: github.ref == 'refs/heads/main'
+        run: |
+          sshpass -p '${{ secrets.SERVER_PASSWORD }}' ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
+            cd /var/www/be-cms-gwt &&
+            npm install --production --legacy-peer-deps &&
+            npx prisma generate
+          '
+
+      - name: 🗃️ Run Database Migration
+        if: github.ref == 'refs/heads/main'
+        run: |
+          sshpass -p '${{ secrets.SERVER_PASSWORD }}' ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
+            cd /var/www/be-cms-gwt &&
+            npx prisma migrate deploy
+          '
 
       - name: 🔒 Set Permissions
+        if: github.ref == 'refs/heads/main'
         run: |
-          sshpass -p 'c#)rgPMzNC2998@Vb4.M' ssh -o StrictHostKeyChecking=no root@147.93.30.80 '
+          sshpass -p '${{ secrets.SERVER_PASSWORD }}' ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
             chmod -R 755 /var/www/be-cms-gwt &&
-            chown -R www-data:www-data /var/www/be-cms-gwt
+            chown -R www-data:www-data /var/www/be-cms-gwt &&
+            chmod +x /var/www/be-cms-gwt/dist/server.js
           '
 
       - name: 🔁 Restart PM2 Process
+        if: github.ref == 'refs/heads/main'
         run: |
-          sshpass -p 'c#)rgPMzNC2998@Vb4.M' ssh -o StrictHostKeyChecking=no root@147.93.30.80 '
-            pm2 restart be-cms-gwt || pm2 start ecosystem.config.js
+          sshpass -p '${{ secrets.SERVER_PASSWORD }}' ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
+            cd /var/www/be-cms-gwt &&
+            pm2 restart be-cms-gwt || pm2 start ecosystem.config.js --env production
           '
