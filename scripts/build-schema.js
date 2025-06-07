@@ -17,6 +17,18 @@ const schemaFiles = [
 console.log('🔨 Building Prisma schema...');
 
 try {
+  const rootEnv = path.join(__dirname, '..', '.env');
+  const prismaEnv = path.join(__dirname, '..', 'prisma', '.env');
+  
+  if (fs.existsSync(rootEnv)) {
+    fs.copyFileSync(rootEnv, prismaEnv);
+    console.log('✅ Copied .env to prisma folder');
+  }
+} catch (error) {
+  console.log('⚠️ Could not copy .env to prisma folder:', error.message);
+}
+
+try {
   // Baca file schema utama (yang berisi generator dan datasource)
   let combinedSchema = fs.readFileSync(path.join('prisma', 'schema.prisma'), 'utf8');
   
