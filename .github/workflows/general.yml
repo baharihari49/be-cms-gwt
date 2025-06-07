@@ -27,16 +27,37 @@ jobs:
 
       - name: 🔧 Create Environment File from Secrets
         run: |
+          # Remove any existing env files to prevent conflicts
+          rm -f .env prisma/.env
+          echo "🧹 Cleaned existing environment files"
+          
           cat > .env << EOF
           DATABASE_URL="${{ secrets.DATABASE_URL_PROD }}"
           NODE_ENV=production
           PORT=3012
           JWT_SECRET="${{ secrets.JWT_SECRET_PROD }}"
           EOF
-          echo "✅ Environment file created from secrets"
+          echo "✅ Environment file created from secrets (root only)"
 
       - name: 🔨 Build Prisma Schema
         run: npm run schema:build
+
+      - name: 🧹 Prevent Environment Conflicts
+        run: |
+          echo "Checking for environment conflicts..."
+          rm -f prisma/.env
+          echo "✅ Ensured no prisma/.env conflicts"
+          
+          if [ -f ".env" ]; then
+            echo "✅ Root .env exists"
+            echo "Environment variables loaded:"
+            echo "- DATABASE_URL: $([ -n "$DATABASE_URL" ] && echo "SET" || echo "NOT_SET")"
+            echo "- NODE_ENV: $(grep NODE_ENV .env | cut -d'=' -f2)"
+            echo "- PORT: $(grep PORT .env | cut -d'=' -f2)"
+          else
+            echo "❌ No root .env found"
+            exit 1
+          fi
 
       - name: 🔄 Prisma Generate
         run: npx prisma generate --schema=prisma/schema-combined.prisma
@@ -53,6 +74,8 @@ jobs:
           ls -la dist/
           echo "Schema files:"
           ls -la prisma/
+          echo "Environment status:"
+          ls -la .env* prisma/.env* 2>/dev/null || echo "No additional env files found"
 
       - name: 🚀 Deploy Application Files
         if: github.ref == 'refs/heads/main'
@@ -86,15 +109,29 @@ jobs:
         run: |
           sshpass -p '${{ secrets.SERVER_PASSWORD }}' ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
             cd /var/www/be-cms-gwt &&
+            
+            # Remove any existing env files to prevent conflicts
+            rm -f .env prisma/.env
+            echo "🧹 Cleaned server environment files"
+            
             cat > .env << "EOF"
-            DATABASE_URL="${{ secrets.DATABASE_URL_PROD }}"
-            NODE_ENV=production
-            PORT=3012
-            JWT_SECRET="${{ secrets.JWT_SECRET_PROD }}"
-            EOF
-            chmod 600 .env &&
-            chown www-data:www-data .env &&
-            echo "✅ Secure environment file created on server"
+          DATABASE_URL="${{ secrets.DATABASE_URL_PROD }}"
+          NODE_ENV=production
+          PORT=3012
+          JWT_SECRET="${{ secrets.JWT_SECRET_PROD }}"
+          EOF
+          chmod 600 .env &&
+          chown www-data:www-data .env &&
+          echo "✅ Secure environment file created on server (root only)"
+          
+          # Verify no conflicts
+          if [ -f "prisma/.env" ]; then
+            echo "⚠️ Found prisma/.env, removing..."
+            rm -f prisma/.env
+          fi
+          
+          echo "Environment file verification:"
+          ls -la .env
           '
 
       - name: 🔧 Install Dependencies on Server
@@ -105,6 +142,9 @@ jobs:
             echo "Installing dependencies..." &&
             npm install --production --legacy-peer-deps &&
             echo "Generating Prisma client..." &&
+            
+            # Ensure no env conflicts before generate
+            rm -f prisma/.env &&
             npx prisma generate
           '
 
@@ -114,6 +154,9 @@ jobs:
           sshpass -p '${{ secrets.SERVER_PASSWORD }}' ssh -o StrictHostKeyChecking=no root@${{ secrets.SERVER_HOST }} '
             cd /var/www/be-cms-gwt &&
             echo "Running database migration..." &&
+            
+            # Ensure no env conflicts before migration
+            rm -f prisma/.env &&
             npx prisma migrate deploy || echo "Migration skipped - using db push" &&
             npx prisma db push --accept-data-loss
           '
@@ -129,7 +172,11 @@ jobs:
             mkdir -p /var/log/be-cms-gwt &&
             mkdir -p /var/www/be-cms-gwt/uploads &&
             chown www-data:www-data /var/log/be-cms-gwt &&
-            chown www-data:www-data /var/www/be-cms-gwt/uploads
+            chown www-data:www-data /var/www/be-cms-gwt/uploads &&
+            
+            # Final verification - ensure no prisma/.env
+            rm -f /var/www/be-cms-gwt/prisma/.env
+            echo "✅ Final cleanup completed"
           '
 
       - name: 🔁 Restart PM2 Process
