@@ -2,6 +2,10 @@
 const fs = require('fs');
 const path = require('path');
 
+
+// Load environment variables PERTAMA
+require('dotenv').config();
+
 // Daftar file schema yang akan digabungkan
 const schemaFiles = [
   'models/user.prisma',
