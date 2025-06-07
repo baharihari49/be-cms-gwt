@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 // routes/categoryRoutes.ts
 const express_1 = require("express");
-const category_controller_1 = require("../controllers/category.controller");
+const category_controller_1 = require("../controllers/projects/category.controller");
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = (0, express_1.Router)();
 // Public routes

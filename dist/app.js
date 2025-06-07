@@ -13,6 +13,7 @@ const auth_route_1 = __importDefault(require("./routes/auth.route"));
 const project_route_1 = __importDefault(require("./routes/project.route"));
 const category_routes_1 = __importDefault(require("./routes/category.routes"));
 const index_1 = __importDefault(require("./routes/blog/index"));
+const index_2 = __importDefault(require("./routes/technology/index"));
 const app = (0, express_1.default)();
 // Buat logger Winston
 const logger = winston_1.default.createLogger({
@@ -61,6 +62,7 @@ app.use('/api/auth', auth_route_1.default);
 app.use('/api/projects', project_route_1.default);
 app.use('/api/categories', category_routes_1.default);
 app.use('/api/blogs', index_1.default);
+app.use('/api/technologies', index_2.default);
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req, res) => {
     res.status(200).json({

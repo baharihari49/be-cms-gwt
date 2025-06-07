@@ -2,7 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 // routes/projectRoutes.ts
 const express_1 = require("express");
-const project_controller_1 = require("../controllers/project.controller");
+const project_controller_1 = require("../controllers/projects/project.controller");
 const auth_middleware_1 = require("../middlewares/auth.middleware");
 const router = (0, express_1.Router)();
 // Public routes
