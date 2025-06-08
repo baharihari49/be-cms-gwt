@@ -1,0 +1,32 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+
+model Client {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  industry     String
+  image        String?       // URL gambar client
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relations
+  testimonials Testimonial[] // A client can have multiple testimonials
+  projects     Project[]     // A client can have multiple projects
+
+  @@map("clients")
+}
+
+model Statistic {
+  id        Int      @id @default(autoincrement())
+  icon      String   // Nama icon (contoh: "Users", "Building", "Globe", "TrendingUp")
+  number    String   // Format string untuk mendukung "50+", "98%", dll
+  label     String
+  order     Int      @default(0) // Untuk mengatur urutan tampil
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("statistics")
+}

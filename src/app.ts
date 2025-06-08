@@ -10,6 +10,8 @@ import categoryRoute from './routes/category.routes';
 import blogRoute from './routes/blog/index';
 import technologyRoute from './routes/technology/index';
 import servicesRoute from './routes/services/index';
+import clientRoute from './routes/client/index';
+import testimonialRoute from './routes/testimonial/index';
 
 const app: Application = express();
 
@@ -74,6 +76,8 @@ app.use('/api/categories', categoryRoute);
 app.use('/api/blogs', blogRoute);
 app.use('/api/technologies', technologyRoute);
 app.use('/api/services', servicesRoute);
+app.use('/api/clients', clientRoute);
+app.use('/api/testimonials', testimonialRoute);
 
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req: Request, res: Response) => {

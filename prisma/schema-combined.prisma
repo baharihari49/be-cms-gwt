@@ -48,30 +48,31 @@ model Category {
 }
 
 model Project {
-  id          Int                @id @default(autoincrement())
+  id          Int           @id @default(autoincrement())
   title       String
   subtitle    String
   categoryId  String
-  category    Category           @relation(fields: [categoryId], references: [id])
+  category    Category      @relation(fields: [categoryId], references: [id])
   type        String
-  description String             @db.Text
+  description String        @db.Text
   image       String?
-  client      String?
+  clientId    Int? // foreign key
+  client      Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
   duration    String?
   year        String?
-  status      ProjectStatus      @default(DEVELOPMENT)
+  status      ProjectStatus @default(DEVELOPMENT)
   icon        String?
-  color       String?            // gradient color class
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  
+  color       String? // gradient color class
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
   // Relations
   technologies ProjectTechnology[]
   features     ProjectFeature[]
   metrics      ProjectMetric?
   links        ProjectLink?
   images       ProjectImage[]
-  reviews      ProjectReview[]
+  reviews      Testimonial[]
 
   @@index([categoryId])
   @@index([status])
@@ -148,32 +149,16 @@ enum ProjectStatus {
   MAINTENANCE
 }
 
-// Optional: Model untuk menyimpan testimonial atau review
-model ProjectReview {
-  id         Int      @id @default(autoincrement())
-  projectId  Int
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  author     String
-  role       String?  // e.g., "CEO", "CTO"
-  company    String?
-  content    String   @db.Text
-  rating     Float?
-  createdAt  DateTime @default(now())
-
-  @@index([projectId])
-  @@map("project_reviews")
-}
-
 // Optional: Model untuk screenshots/gallery
 model ProjectImage {
-  id         Int      @id @default(autoincrement())
-  projectId  Int
-  project    Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  url        String
-  caption    String?
-  order      Int      @default(0)
-  type       ImageType @default(SCREENSHOT)
-  createdAt  DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  projectId Int
+  project   Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  url       String
+  caption   String?
+  order     Int       @default(0)
+  type      ImageType @default(SCREENSHOT)
+  createdAt DateTime  @default(now())
 
   @@index([projectId])
   @@map("project_images")
@@ -186,6 +171,7 @@ enum ImageType {
   DIAGRAM
   OTHER
 }
+
 
 // ===============================================
 // MODELS/BLOG.PRISMA
@@ -393,4 +379,68 @@ model Technology {
     services      ServiceTechnology[]
 
     @@map("technologies")
+}
+
+
+// ===============================================
+// MODELS/CLIENTS.PRISMA
+// ===============================================
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+
+model Client {
+  id           Int           @id @default(autoincrement())
+  name         String        @unique
+  industry     String
+  image        String?       // URL gambar client
+  isActive     Boolean       @default(true)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  
+  // Relations
+  testimonials Testimonial[] // A client can have multiple testimonials
+  projects     Project[]     // A client can have multiple projects
+
+  @@map("clients")
+}
+
+model Statistic {
+  id        Int      @id @default(autoincrement())
+  icon      String   // Nama icon (contoh: "Users", "Building", "Globe", "TrendingUp")
+  number    String   // Format string untuk mendukung "50+", "98%", dll
+  label     String
+  order     Int      @default(0) // Untuk mengatur urutan tampil
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("statistics")
+}
+
+// ===============================================
+// MODELS/TESTIMONIALS.PRISMA
+// ===============================================
+
+
+// Optional: Model untuk menyimpan testimonial atau review
+model Testimonial {
+  id        Int      @id @default(autoincrement())
+  projectId Int?     // Optional relation to project
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId  Int?     // Optional relation to client
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  author    String   // Name of the person giving testimonial
+  role      String?  // e.g., "CEO", "CTO"
+  company   String?  // Company name (can be different from client name)
+  content   String   @db.Text
+  rating    Float?   // Changed to Float for more precise ratings
+  avatar    String?  // URL atau inisial avatar
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([clientId])
+  @@map("testimonials")
 }

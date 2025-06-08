@@ -27,7 +27,7 @@ export interface CreateProjectData {
   type: string;
   description: string;
   image?: string;
-  client?: string;
+  clientId?: number; // Changed from client?: string to clientId?: number
   duration?: string;
   year?: string;
   status?: ProjectStatus;
@@ -70,6 +70,7 @@ export class ProjectService {
         },
         include: {
           category: true,
+          client: true, // Include client data
           technologies: {
             include: {
               technology: true
@@ -110,6 +111,7 @@ export class ProjectService {
       where: { id },
       include: {
         category: true,
+        client: true, // Include client data
         technologies: {
           include: {
             technology: true
@@ -145,6 +147,17 @@ export class ProjectService {
       throw new Error('Invalid category');
     }
 
+    // Check if client exists (if clientId is provided)
+    if (data.clientId) {
+      const client = await prisma.client.findUnique({
+        where: { id: data.clientId }
+      });
+
+      if (!client) {
+        throw new Error('Invalid client');
+      }
+    }
+
     const project = await prisma.project.create({
       data: {
         title: data.title,
@@ -153,7 +166,7 @@ export class ProjectService {
         type: data.type,
         description: data.description,
         image: data.image,
-        client: data.client,
+        clientId: data.clientId, // Use clientId instead of client
         duration: data.duration,
         year: data.year,
         status: data.status || 'DEVELOPMENT',
@@ -205,6 +218,7 @@ export class ProjectService {
       },
       include: {
         category: true,
+        client: true, // Include client data
         technologies: {
           include: {
             technology: true
@@ -243,6 +257,17 @@ export class ProjectService {
       throw new Error('Project not found');
     }
 
+    // Check if client exists (if clientId is provided)
+    if (data.clientId) {
+      const client = await prisma.client.findUnique({
+        where: { id: data.clientId }
+      });
+
+      if (!client) {
+        throw new Error('Invalid client');
+      }
+    }
+
     const project = await prisma.project.update({
       where: { id },
       data: {
@@ -252,7 +277,7 @@ export class ProjectService {
         type: data.type,
         description: data.description,
         image: data.image,
-        client: data.client,
+        clientId: data.clientId, // Use clientId instead of client
         duration: data.duration,
         year: data.year,
         status: data.status,
@@ -314,6 +339,7 @@ export class ProjectService {
       },
       include: {
         category: true,
+        client: true, // Include client data
         technologies: {
           include: {
             technology: true
@@ -373,6 +399,13 @@ export class ProjectService {
   static async getCategories() {
     return await prisma.category.findMany({
       orderBy: { label: 'asc' }
+    });
+  }
+
+  // Get clients
+  static async getClients() {
+    return await prisma.client.findMany({
+      orderBy: { name: 'asc' }
     });
   }
 
@@ -453,7 +486,7 @@ export class ProjectService {
       throw new Error('Project not found');
     }
 
-    return await prisma.projectReview.create({
+    return await prisma.testimonial.create({
       data: {
         projectId,
         author: reviewData.author,
@@ -467,7 +500,7 @@ export class ProjectService {
 
   // Delete project review
   static async deleteProjectReview(reviewId: number) {
-    return await prisma.projectReview.delete({
+    return await prisma.testimonial.delete({
       where: { id: reviewId }
     });
   }

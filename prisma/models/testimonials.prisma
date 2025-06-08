@@ -1,0 +1,21 @@
+
+// Optional: Model untuk menyimpan testimonial atau review
+model Testimonial {
+  id        Int      @id @default(autoincrement())
+  projectId Int?     // Optional relation to project
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  clientId  Int?     // Optional relation to client
+  client    Client?  @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  author    String   // Name of the person giving testimonial
+  role      String?  // e.g., "CEO", "CTO"
+  company   String?  // Company name (can be different from client name)
+  content   String   @db.Text
+  rating    Float?   // Changed to Float for more precise ratings
+  avatar    String?  // URL atau inisial avatar
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([projectId])
+  @@index([clientId])
+  @@map("testimonials")
+}
