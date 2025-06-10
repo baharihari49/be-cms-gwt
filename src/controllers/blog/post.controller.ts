@@ -63,6 +63,26 @@ const getPostInclude = () => ({
   stats: true
 });
 
+const getSelectPost = () => ({
+  select: {
+    id: true,
+    title: true,
+    slug: true,
+    excerpt: true,
+    image: true,
+    featured: true,
+    published: true,
+    readTime: true,
+    author: true,
+    category: true,
+    tags: { include: { tag: true } },
+    stats: true,
+    publishedAt: true,
+    createdAt: true,
+    updatedAt: true
+  }
+})
+
 // Create new post
 export const createPost = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -168,17 +188,26 @@ export const getAllPosts = async (req: Request, res: Response): Promise<void> =>
         skip,
         take: Number(limit),
         orderBy: orderByClause,
-        include: {
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          image: true,
+          featured: true,
+          published: true,
+          readTime: true,
           author: true,
           category: true,
           tags: { include: { tag: true } },
           stats: true,
-          comments: true,
+          comments: false,
+          publishedAt: true,
+          createdAt: true,
+          updatedAt: true,
         }
       }),
-      prisma.blogPost.count({
-        where: whereClause
-      })
+      prisma.blogPost.count({ where: whereClause })
     ]);
 
     res.json({
@@ -209,7 +238,8 @@ export const getFeaturedPosts = async (req: Request, res: Response): Promise<voi
       orderBy: {
         publishedAt: 'desc'
       },
-      include: getPostInclude()
+      // include: getPostInclude(),
+      ...getSelectPost()
     });
 
     res.json({
@@ -955,10 +985,23 @@ export const getRecentPosts = async (req: Request, res: Response): Promise<void>
         published: true
       },
       take: limit,
-      orderBy: {
-        publishedAt: 'desc'
-      },
-      include: getPostInclude()
+      select: {
+        id: true,
+        title: true,
+        slug: true,
+        excerpt: true,
+        image: true,
+        featured: true,
+        published: true,
+        readTime: true,
+        author: true,
+        category: true,
+        tags: { include: { tag: true } },
+        stats: true,
+        publishedAt: true,
+        createdAt: true,
+        updatedAt: true
+      }
     });
 
     res.json({
