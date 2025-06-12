@@ -44,6 +44,7 @@ const allowedOrigins = [
   'https://fe-gwt.baharihari.com/',
   'https://fe-gwt.baharihari.com',
   'https://cms.gwt.co.id',
+  'https://gwt.baharihari.com'
   // tambahkan origin lain sesuai kebutuhan
 ];
 
