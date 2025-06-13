@@ -1,4 +1,3 @@
-// utils/errorHandler.ts
 import { Response } from 'express';
 import { z } from 'zod';
 
@@ -15,7 +14,6 @@ export class ErrorHandler {
     }
 
     if (error instanceof Error) {
-      // Handle specific known errors
       switch (error.message) {
         case 'Project not found':
         case 'Category not found':
@@ -25,16 +23,17 @@ export class ErrorHandler {
             success: false,
             error: error.message
           });
-        
+
         case 'Invalid category':
         case 'Invalid project ID':
         case 'Invalid image ID':
         case 'Invalid review ID':
+        case 'Invalid slug':
           return res.status(400).json({
             success: false,
             error: error.message
           });
-        
+
         default:
           return res.status(500).json({
             success: false,
@@ -51,11 +50,21 @@ export class ErrorHandler {
 
   static validateId(id: string | number, paramName: string = 'ID'): number {
     const numericId = typeof id === 'string' ? parseInt(id) : id;
-    
+
     if (isNaN(numericId)) {
       throw new Error(`Invalid ${paramName}`);
     }
-    
+
     return numericId;
+  }
+
+  static validateSlug(slug: string, paramName: string = 'slug'): string {
+    const isValid = /^[a-z0-9-]+$/.test(slug);
+
+    if (!isValid) {
+      throw new Error(`Invalid ${paramName}`);
+    }
+
+    return slug;
   }
 }

@@ -45,6 +45,7 @@ export const projectLinksSchema = z.object({
 export const createProjectSchema = z.object({
   title: z.string().min(1, 'Title is required'),
   subtitle: z.string().min(1, 'Subtitle is required'),
+  slug: z.string().min(1, 'Slug is required').regex(/^[a-z0-9-]+$/, 'Slug must be lowercase and can only contain letters, numbers, and hyphens'),
   categoryId: z.string().min(1, 'Category is required'),
   type: z.string().min(1, 'Type is required'),
   description: z.string().min(1, 'Description is required'),

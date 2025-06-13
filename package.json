@@ -9,6 +9,7 @@
   "scripts": {
     "seed": "tsx prisma/seed.ts",
     "seed:blog": "tsx prisma/seeders/blog.seeder.ts",
+    "seed:portfolio": "tsx prisma/seeders/portfolio.seeder.ts",
     "build": "npm run schema:build && npm run db:generate && tsc",
     "start": "node dist/server.js",
     "dev": "npm run schema:build && ts-node-dev --respawn --transpile-only src/server.ts",

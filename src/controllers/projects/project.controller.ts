@@ -52,6 +52,30 @@ export class ProjectController {
     }
   }
 
+  
+  // Get single project
+  static async getProjectBySlug(req: Request, res: Response): Promise<void> {
+    try {
+      const slug = ErrorHandler.validateSlug(req.params.slug, 'project slug');
+      const project = await ProjectService.getProjectBySlug(slug);
+
+      if (!project) {
+        res.status(404).json({ 
+          success: false,
+          error: 'Project not found' 
+        });
+        return;
+      }
+
+      res.json({ 
+        success: true,
+        project 
+      });
+    } catch (error) {
+      ErrorHandler.handleError(error, res, 'Get project');
+    }
+  }
+
   // Create project (Admin only)
   static async createProject(req: AuthRequest, res: Response): Promise<void> {
     try {

@@ -24,6 +24,7 @@ export interface CreateProjectData {
   title: string;
   subtitle: string;
   categoryId: string;
+  slug: string;
   type: string;
   description: string;
   image?: string;
@@ -136,6 +137,37 @@ export class ProjectService {
     return project ? this.transformProject(project) : null;
   }
 
+   // Get single project
+  static async getProjectBySlug(slug: string) {
+    const project = await prisma.project.findUnique({
+      where: { slug },
+      include: {
+        category: true,
+        client: true, // Include client data
+        technologies: {
+          include: {
+            technology: true
+          }
+        },
+        features: {
+          include: {
+            feature: true
+          }
+        },
+        metrics: true,
+        links: true,
+        images: {
+          orderBy: { order: 'asc' }
+        },
+        reviews: {
+          orderBy: { createdAt: 'desc' }
+        }
+      }
+    });
+
+    return project ? this.transformProject(project) : null;
+  }
+
   // Create new project
   static async createProject(data: CreateProjectData) {
     // Check if category exists
@@ -162,6 +194,7 @@ export class ProjectService {
       data: {
         title: data.title,
         subtitle: data.subtitle,
+        slug: data.title.toLowerCase().replace(/\s+/g, '-').slice(0, 50), // Generate slug
         categoryId: data.categoryId,
         type: data.type,
         description: data.description,

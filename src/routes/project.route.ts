@@ -10,6 +10,7 @@ router.get('/', ProjectController.getProjects);
 router.get('/categories', ProjectController.getCategories);
 router.get('/statistics', ProjectController.getStatistics);
 router.get('/:id', ProjectController.getProject);
+router.get('/slug/:slug', ProjectController.getProjectBySlug);
 
 // Protected routes (Admin only)
 router.post('/', verifyToken, isAdmin, ProjectController.createProject);
