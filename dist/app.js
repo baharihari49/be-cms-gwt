@@ -14,6 +14,9 @@ const project_route_1 = __importDefault(require("./routes/project.route"));
 const category_routes_1 = __importDefault(require("./routes/category.routes"));
 const index_1 = __importDefault(require("./routes/blog/index"));
 const index_2 = __importDefault(require("./routes/technology/index"));
+const index_3 = __importDefault(require("./routes/services/index"));
+const index_4 = __importDefault(require("./routes/client/index"));
+const index_5 = __importDefault(require("./routes/testimonial/index"));
 const app = (0, express_1.default)();
 // Buat logger Winston
 const logger = winston_1.default.createLogger({
@@ -33,8 +36,12 @@ app.use((0, morgan_1.default)('combined', {
 // Konfigurasi CORS
 const allowedOrigins = [
     'http://localhost:3000',
+    'http://localhost:3002',
     'https://fe-gwt.baharihari.com/',
     'https://fe-gwt.baharihari.com',
+    'https://cms.gwt.co.id',
+    'https://gwt.baharihari.com',
+    'https://gwt.co.id'
     // tambahkan origin lain sesuai kebutuhan
 ];
 app.use((0, cors_1.default)({
@@ -63,6 +70,9 @@ app.use('/api/projects', project_route_1.default);
 app.use('/api/categories', category_routes_1.default);
 app.use('/api/blogs', index_1.default);
 app.use('/api/technologies', index_2.default);
+app.use('/api/services', index_3.default);
+app.use('/api/clients', index_4.default);
+app.use('/api/testimonials', index_5.default);
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req, res) => {
     res.status(200).json({
