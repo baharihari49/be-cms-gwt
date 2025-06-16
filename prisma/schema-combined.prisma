@@ -546,3 +546,26 @@ model CompanyInfo {
 
   @@map("company_info")
 }
+
+// ===============================================
+// MODELS/TEAM.PRISMA
+// ===============================================
+
+model TeamMember {
+  id           Int    @id @default(autoincrement())
+  name         String
+  position     String
+  department   String
+  bio          String @db.Text
+  avatar       String
+  skills       Json
+  experience   String
+  projects     String
+  speciality   String
+  social       Json
+  gradient     String
+  icon         String
+  achievements Json
+
+  @@map("team_members")
+}

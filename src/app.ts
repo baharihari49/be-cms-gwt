@@ -14,6 +14,7 @@ import clientRoute from './routes/client/index';
 import testimonialRoute from './routes/testimonial/index';
 import faqsRoute from './routes/fag/index'
 import aboutUsRoute from './routes/about/index'
+import teamsRoute from './routes/teamMember/index'
 
 const app: Application = express();
 
@@ -86,6 +87,7 @@ app.use('/api/clients', clientRoute);
 app.use('/api/testimonials', testimonialRoute);
 app.use('/api/faqs', faqsRoute);
 app.use('/api/about-us', aboutUsRoute)
+app.use('/api/team-members', teamsRoute)
 
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req: Request, res: Response) => {
