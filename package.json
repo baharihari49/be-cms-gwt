@@ -12,6 +12,7 @@
     "seed:portfolio": "tsx prisma/seeders/portfolio.seeder.ts",
     "seed:faq": "tsx prisma/seeders/faq.seeder.ts",
     "seed:services": "tsx prisma/seeders/service.seeder.ts",
+    "seed:about": "tsx prisma/seeders/aboutus.seeder.ts",
     "build": "npm run schema:build && npm run db:generate && tsc",
     "start": "node dist/server.js",
     "dev": "npm run schema:build && ts-node-dev --respawn --transpile-only src/server.ts",

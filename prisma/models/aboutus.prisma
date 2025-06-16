@@ -1,0 +1,58 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+model CompanyValue {
+  id          String @id @default(cuid())
+  icon        String
+  title       String @unique
+  description String @db.Text
+  color       String
+  order       Int    @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("company_values")
+}
+
+model TimelineItem {
+  id                  String @id @default(cuid())
+  year                String @unique
+  title               String
+  description         String @db.Text
+  achievement         String
+  extendedDescription String @db.Text
+  order               Int    @default(0)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("timeline_items")
+}
+
+model CompanyStat {
+  id        String @id @default(cuid())
+  icon      String
+  number    String
+  label     String @unique
+  order     Int    @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("company_stats")
+}
+
+model CompanyInfo {
+  id              String @id @default(cuid())
+  companyName     String @unique @default("GWT")
+  previousName    String @default("CIB Productions")
+  foundedYear     String @default("2018")
+  mission         String @db.Text
+  vision          String @db.Text
+  aboutHeader     String @db.Text
+  aboutSubheader  String @db.Text
+  journeyTitle    String @default("Our Journey")
+  storyText       String @db.Text
+  heroImageUrl    String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("company_info")
+}
