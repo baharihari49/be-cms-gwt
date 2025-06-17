@@ -15,6 +15,7 @@ import testimonialRoute from './routes/testimonial/index';
 import faqsRoute from './routes/fag/index'
 import aboutUsRoute from './routes/about/index'
 import teamsRoute from './routes/teamMember/index'
+import heroRoute from './routes/hero/index'
 
 const app: Application = express();
 
@@ -48,7 +49,7 @@ const allowedOrigins = [
   'https://fe-gwt.baharihari.com',
   'https://cms.gwt.co.id',
   'https://gwt.baharihari.com',
-  'https://gwt.co.id'
+  'https://gwt.co.id',
   // tambahkan origin lain sesuai kebutuhan
 ];
 
@@ -88,6 +89,7 @@ app.use('/api/testimonials', testimonialRoute);
 app.use('/api/faqs', faqsRoute);
 app.use('/api/about-us', aboutUsRoute)
 app.use('/api/team-members', teamsRoute)
+app.use('/api/hero', heroRoute)
 
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req: Request, res: Response) => {

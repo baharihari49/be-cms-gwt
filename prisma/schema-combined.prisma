@@ -569,3 +569,36 @@ model TeamMember {
 
   @@map("team_members")
 }
+
+
+// ===============================================
+// MODELS/HERO.PRISMA
+// ===============================================
+
+model HeroSection {
+  id          String   @id @default(cuid())
+  welcomeText String   @default("Welcome to GWT")
+  mainTitle   String   @default("Growth With")
+  highlightText String @default("Technology")
+  description String   @default("We empower businesses to thrive in the digital era through innovative technology solutions, custom software development, and digital transformation strategies.")
+  logo        String?  // URL atau path ke logo
+  image       String?  // URL gambar hero section
+  altText     String?  // Alt text untuk gambar
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("hero_sections")
+}
+
+model SocialMedia {
+  id       String @id @default(cuid())
+  name     String // "GitHub", "LinkedIn", "Instagram", "Email"
+  url      String // URL lengkap
+  isActive Boolean @default(true)
+  order    Int    @default(0) // untuk mengurutkan tampilan
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("social_media")
+}
