@@ -36,6 +36,9 @@ jobs:
           NODE_ENV=production
           PORT=3012
           JWT_SECRET="${{ secrets.JWT_SECRET_PROD }}"
+          RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
+          VERIFIED_EMAIL_DOMAIN="${{ secrets.VERIFIED_EMAIL_DOMAIN }}"
+          BUSINESS_EMAIL="${{ secrets.BUSINESS_EMAIL }}"
           EOF
           echo "✅ Environment file created from secrets (root only)"
 
