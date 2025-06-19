@@ -17,6 +17,7 @@ import aboutUsRoute from './routes/about/index'
 import teamsRoute from './routes/teamMember/index'
 import heroRoute from './routes/hero/index'
 import emailRoute from './routes/email/contact.routes'
+import deleteImageClodinary from './routes/cloudinary.routes'
 
 const app: Application = express();
 
@@ -92,6 +93,7 @@ app.use('/api/about-us', aboutUsRoute)
 app.use('/api/team-members', teamsRoute)
 app.use('/api/hero', heroRoute)
 app.use('/api/email', emailRoute)
+app.use('/api/cloudinary', deleteImageClodinary)
 
 // Endpoint utama (root) dengan pesan sambutan dan link dokumentasi
 app.get('/', (req: Request, res: Response) => {
