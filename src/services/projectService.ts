@@ -3,11 +3,11 @@ import prisma from '../prismaClient';
 
 // Import types and constants
 import { ProjectStatus } from '../constants/project';
-import { 
-  CreateProjectMetrics, 
-  CreateProjectLinks, 
-  CreateProjectImage, 
-  CreateProjectReview 
+import {
+  CreateProjectMetrics,
+  CreateProjectLinks,
+  CreateProjectImage,
+  CreateProjectReview
 } from '../types/project';
 
 export interface ProjectQuery {
@@ -137,7 +137,7 @@ export class ProjectService {
     return project ? this.transformProject(project) : null;
   }
 
-   // Get single project
+  // Get single project
   static async getProjectBySlug(slug: string) {
     const project = await prisma.project.findUnique({
       where: { slug },
@@ -280,9 +280,9 @@ export class ProjectService {
   static async updateProject(id: number, data: Partial<CreateProjectData>) {
     const existingProject = await prisma.project.findUnique({
       where: { id },
-      include: { 
-        technologies: true, 
-        features: true 
+      include: {
+        technologies: true,
+        features: true
       }
     });
 
@@ -537,6 +537,189 @@ export class ProjectService {
       where: { id: reviewId }
     });
   }
+
+
+  // Tambahkan method ini ke dalam class ProjectService
+
+  /**
+   * Update project image field menjadi null berdasarkan URL
+   * Digunakan ketika image dihapus dari Cloudinary
+   * @param imageUrl - URL gambar yang dihapus
+   * @returns Informasi tentang update yang dilakukan
+   */
+  static async updateProjectImageByUrl(imageUrl: string) {
+    try {
+      // Update semua project yang field image-nya sama dengan imageUrl
+      const updateResult = await prisma.project.updateMany({
+        where: {
+          image: imageUrl
+        },
+        data: {
+          image: null
+        }
+      });
+
+      // Jika ada project yang diupdate, ambil detail projectnya untuk logging
+      let updatedProjects: any[] = [];
+      if (updateResult.count > 0) {
+        // Karena kita sudah update jadi null, kita perlu query dengan kondisi yang berbeda
+        // Ini untuk mendapatkan project yang baru saja diupdate (optional, untuk logging)
+        updatedProjects = await prisma.project.findMany({
+          where: {
+            AND: [
+              { image: null },
+              {
+                OR: [
+                  { title: { contains: imageUrl.split('/').pop()?.split('.')[0] || '' } },
+                  { updatedAt: { gte: new Date(Date.now() - 5000) } } // 5 detik terakhir
+                ]
+              }
+            ]
+          },
+          select: {
+            id: true,
+            title: true,
+            slug: true
+          },
+          take: updateResult.count // Ambil sesuai jumlah yang diupdate
+        });
+      }
+
+      return {
+        success: true,
+        updatedCount: updateResult.count,
+        updatedProjects: updatedProjects,
+        message: `${updateResult.count} project(s) image field updated to null`
+      };
+
+    } catch (error: any) {
+      console.error('Error updating project image by URL:', error);
+
+      // Return error info tapi jangan throw, biar proses delete tetap jalan
+      return {
+        success: false,
+        updatedCount: 0,
+        updatedProjects: [],
+        message: 'Failed to update project image field',
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Update project images field menjadi null berdasarkan URL
+   * Untuk menghapus image dari array images project
+   * @param imageUrl - URL gambar yang dihapus
+   * @returns Informasi tentang update yang dilakukan
+   */
+  static async updateProjectImagesArrayByUrl(imageUrl: string) {
+    try {
+      // Cari project yang memiliki image dengan URL tersebut di array images
+      const projectsWithImage = await prisma.project.findMany({
+        where: {
+          images: {
+            some: {
+              url: imageUrl
+            }
+          }
+        },
+        include: {
+          images: true
+        }
+      });
+
+      if (projectsWithImage.length === 0) {
+        return {
+          success: true,
+          updatedCount: 0,
+          updatedProjects: [],
+          message: 'No projects found with this image in images array'
+        };
+      }
+
+      // Hapus image dari array untuk setiap project
+      const updatePromises = projectsWithImage.map(async (project) => {
+        // Hapus image dengan URL yang sama
+        await prisma.projectImage.deleteMany({
+          where: {
+            projectId: project.id,
+            url: imageUrl
+          }
+        });
+
+        return {
+          id: project.id,
+          title: project.title,
+          slug: project.slug
+        };
+      });
+
+      const updatedProjects = await Promise.all(updatePromises);
+
+      return {
+        success: true,
+        updatedCount: updatedProjects.length,
+        updatedProjects: updatedProjects,
+        message: `Image removed from ${updatedProjects.length} project(s) images array`
+      };
+
+    } catch (error: any) {
+      console.error('Error updating project images array by URL:', error);
+
+      return {
+        success: false,
+        updatedCount: 0,
+        updatedProjects: [],
+        message: 'Failed to update project images array',
+        error: error.message
+      };
+    }
+  }
+
+  /**
+   * Comprehensive update untuk semua kemungkinan penggunaan image
+   * Akan update baik field image maupun array images
+   * @param imageUrl - URL gambar yang dihapus
+   * @returns Informasi lengkap tentang semua update yang dilakukan
+   */
+  static async updateAllProjectImagesByUrl(imageUrl: string) {
+    try {
+      // Update field image
+      const imageFieldUpdate = await this.updateProjectImageByUrl(imageUrl);
+
+      // Update array images
+      const imagesArrayUpdate = await this.updateProjectImagesArrayByUrl(imageUrl);
+
+      const totalUpdated = imageFieldUpdate.updatedCount + imagesArrayUpdate.updatedCount;
+      const allUpdatedProjects = [
+        ...imageFieldUpdate.updatedProjects,
+        ...imagesArrayUpdate.updatedProjects
+      ];
+
+      return {
+        success: imageFieldUpdate.success && imagesArrayUpdate.success,
+        updatedCount: totalUpdated,
+        updatedProjects: allUpdatedProjects,
+        message: `Total ${totalUpdated} project(s) updated`,
+        details: {
+          imageFieldUpdates: imageFieldUpdate,
+          imagesArrayUpdates: imagesArrayUpdate
+        }
+      };
+
+    } catch (error: any) {
+      console.error('Error in comprehensive project image update:', error);
+
+      return {
+        success: false,
+        updatedCount: 0,
+        updatedProjects: [],
+        message: 'Failed to update project images',
+        error: error.message
+      };
+    }
+  }
+
 
   // Transform single project
   private static transformProject(project: any) {

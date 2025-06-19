@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { v2 as cloudinary } from 'cloudinary';
+import { ProjectService } from '../../services/projectService'; // Import ProjectService
 
 // Konfigurasi Cloudinary
 cloudinary.config({
@@ -166,14 +167,24 @@ export const deleteImage = async (req: Request, res: Response): Promise<void> =>
 
     // Periksa hasil penghapusan
     if (deleteResult.result === 'ok') {
+      // TAMBAHAN: Update project yang menggunakan image ini
+      let projectUpdateInfo = null;
+      try {
+        projectUpdateInfo = await ProjectService.updateProjectImageByUrl(imageUrl);
+      } catch (projectError) {
+        console.error('Error updating project image:', projectError);
+        // Continue execution even if project update fails
+      }
+
       res.status(200).json({
         success: true,
-        message: `Image deleted successfully from Cloudinary${deleteResult.invalidated ? ' and cache invalidated' : ''}`,
+        message: `Image deleted successfully from Cloudinary${deleteResult.invalidated ? ' and cache invalidated' : ''}${projectUpdateInfo ? ` and ${projectUpdateInfo.updatedCount} project(s) updated` : ''}`,
         data: {
           publicId: publicId,
           imageUrl: imageUrl,
           cloudinaryResult: deleteResult,
-          cacheInvalidated: deleteResult.invalidated || false
+          cacheInvalidated: deleteResult.invalidated || false,
+          projectUpdate: projectUpdateInfo // Info tentang project yang diupdate
         }
       } as ApiResponse);
     } else if (deleteResult.result === 'not found') {
@@ -236,7 +247,10 @@ export const deleteMultipleImages = async (req: Request, res: Response): Promise
       result?: string;
       error?: string;
       cacheInvalidated?: boolean;
+      projectUpdate?: any; // Info tentang project yang diupdate
     }> = [];
+
+    let totalProjectsUpdated = 0;
 
     // Proses setiap gambar
     for (const image of images) {
@@ -263,13 +277,27 @@ export const deleteMultipleImages = async (req: Request, res: Response): Promise
           type: 'upload'     // Specify the delivery type
         });
 
+        let projectUpdateInfo = null;
+        
+        // Jika berhasil hapus dari Cloudinary, update project
+        if (deleteResult.result === 'ok') {
+          try {
+            projectUpdateInfo = await ProjectService.updateProjectImageByUrl(image.imageUrl);
+            totalProjectsUpdated += projectUpdateInfo?.updatedCount || 0;
+          } catch (projectError) {
+            console.error('Error updating project image:', projectError);
+            // Continue execution even if project update fails
+          }
+        }
+
         results.push({
           imageUrl: image.imageUrl,
           publicId: publicId,
           success: deleteResult.result === 'ok',
           result: deleteResult.result,
           error: deleteResult.result !== 'ok' ? `Cloudinary returned: ${deleteResult.result}` : undefined,
-          cacheInvalidated: deleteResult.invalidated || false
+          cacheInvalidated: deleteResult.invalidated || false,
+          projectUpdate: projectUpdateInfo
         });
       } catch (error: any) {
         results.push({
@@ -286,12 +314,13 @@ export const deleteMultipleImages = async (req: Request, res: Response): Promise
 
     res.status(200).json({
       success: successCount > 0,
-      message: `${successCount}/${totalCount} images deleted successfully`,
+      message: `${successCount}/${totalCount} images deleted successfully${totalProjectsUpdated > 0 ? ` and ${totalProjectsUpdated} project(s) updated` : ''}`,
       data: {
         summary: {
           total: totalCount,
           successful: successCount,
-          failed: totalCount - successCount
+          failed: totalCount - successCount,
+          projectsUpdated: totalProjectsUpdated
         },
         results: results
       }
