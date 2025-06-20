@@ -10,24 +10,26 @@ model Category {
 }
 
 model Project {
-  id          Int           @id @default(autoincrement())
-  title       String
-  subtitle    String
-  slug        String        @unique
-  categoryId  String
-  category    Category      @relation(fields: [categoryId], references: [id])
-  type        String
-  description String        @db.Text
-  image       String?
-  clientId    Int? // foreign key
-  client      Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  duration    String?
-  year        String?
-  status      ProjectStatus @default(DEVELOPMENT)
-  icon        String?
-  color       String? // gradient color class
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             Int           @id @default(autoincrement())
+  title          String
+  subtitle       String
+  slug           String        @unique
+  categoryId     String
+  category       Category      @relation(fields: [categoryId], references: [id])
+  type           String
+  description    String        @db.Text
+  image          String?
+  clientId       Int? // foreign key
+  client         Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  duration       String?
+  year           String?
+  status         ProjectStatus @default(DEVELOPMENT)
+  icon           String?
+  color          String? // gradient color class
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   // Relations
   technologies ProjectTechnology[]

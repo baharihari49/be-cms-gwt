@@ -2,14 +2,16 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 model Service {
-  id          Int      @id @default(autoincrement())
-  icon        String // Store icon name as string
-  title       String
-  subtitle    String
-  description String   @db.Text
-  color       String // Store gradient color classes
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             Int      @id @default(autoincrement())
+  icon           String // Store icon name as string
+  title          String
+  subtitle       String
+  description    String   @db.Text
+  color          String // Store gradient color classes
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Relations
   features     ServiceFeature[]
@@ -28,12 +30,12 @@ model ServiceFeature {
 }
 
 model ServiceTechnology {
-  id           Int     @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   name         String
   serviceId    Int
   technologyId Int
   technology   Technology @relation(fields: [technologyId], references: [id])
-  service      Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  service      Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@unique([serviceId, technologyId])
   @@index([serviceId])

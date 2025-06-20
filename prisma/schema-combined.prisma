@@ -48,24 +48,26 @@ model Category {
 }
 
 model Project {
-  id          Int           @id @default(autoincrement())
-  title       String
-  subtitle    String
-  slug        String        @unique
-  categoryId  String
-  category    Category      @relation(fields: [categoryId], references: [id])
-  type        String
-  description String        @db.Text
-  image       String?
-  clientId    Int? // foreign key
-  client      Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
-  duration    String?
-  year        String?
-  status      ProjectStatus @default(DEVELOPMENT)
-  icon        String?
-  color       String? // gradient color class
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
+  id             Int           @id @default(autoincrement())
+  title          String
+  subtitle       String
+  slug           String        @unique
+  categoryId     String
+  category       Category      @relation(fields: [categoryId], references: [id])
+  type           String
+  description    String        @db.Text
+  image          String?
+  clientId       Int? // foreign key
+  client         Client?       @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  duration       String?
+  year           String?
+  status         ProjectStatus @default(DEVELOPMENT)
+  icon           String?
+  color          String? // gradient color class
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
 
   // Relations
   technologies ProjectTechnology[]
@@ -178,79 +180,77 @@ enum ImageType {
 // MODELS/BLOG.PRISMA
 // ===============================================
 
-
-
-
-
 // Blog Posts Schema - Tidak konflik dengan schema Project yang sudah ada
 
 model BlogAuthor {
-  id        String   @id @default(cuid())
+  id        String        @id @default(cuid())
   name      String
-  email     String?  @unique
-  bio       String?  @db.Text
+  email     String?       @unique
+  bio       String?       @db.Text
   avatar    String?
   posts     BlogPost[]
   comments  BlogComment[] // Tambahkan ini
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@map("blog_authors")
 }
 
 model BlogCategory {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  slug        String?  @unique
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String?    @unique
   description String?
   icon        String?
-  color       String?  // Untuk gradient color seperti "from-blue-500 to-cyan-400"
+  color       String? // Untuk gradient color seperti "from-blue-500 to-cyan-400"
   posts       BlogPost[]
-  postCount   Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  postCount   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 
   @@map("blog_categories")
 }
 
 model BlogTag {
-  id        String     @id @default(cuid())
-  name      String     @unique
-  slug      String?    @unique
+  id        String        @id @default(cuid())
+  name      String        @unique
+  slug      String?       @unique
   posts     BlogPostTag[]
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   @@map("blog_tags")
 }
 
 model BlogPost {
-  id         String     @id @default(cuid())
-  title      String
-  slug       String?    @unique
-  excerpt    String     @db.Text
-  content    String?    @db.Text
-  image      String?
-  featured   Boolean    @default(false)
-  published  Boolean    @default(true)
-  readTime   String?    // e.g., "8 min read"
-  
+  id             String  @id @default(cuid())
+  title          String
+  slug           String? @unique
+  excerpt        String  @db.Text
+  content        String? @db.Text
+  image          String?
+  featured       Boolean @default(false)
+  published      Boolean @default(true)
+  readTime       String? // e.g., "8 min read"
+  seoTitle       String?
+  seoDescription String?
+
   // Relations
-  authorId   String
-  author     BlogAuthor     @relation(fields: [authorId], references: [id])
-  
+  authorId String
+  author   BlogAuthor @relation(fields: [authorId], references: [id])
+
   categoryId String
-  category   BlogCategory   @relation(fields: [categoryId], references: [id])
-  
-  tags       BlogPostTag[]
-  stats      BlogPostStats?
-  comments   BlogComment[]
-  
+  category   BlogCategory @relation(fields: [categoryId], references: [id])
+
+  tags     BlogPostTag[]
+  stats    BlogPostStats?
+  comments BlogComment[]
+
   // Timestamps
-  publishedAt DateTime  @default(now())
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
+  publishedAt DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   @@index([authorId])
   @@index([categoryId])
   @@index([featured])
@@ -261,11 +261,11 @@ model BlogPost {
 
 model BlogPostTag {
   postId String
-  post   BlogPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  
-  tagId  String
-  tag    BlogTag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
-  
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  tagId String
+  tag   BlogTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
   @@id([postId, tagId])
   @@index([postId])
   @@index([tagId])
@@ -273,49 +273,50 @@ model BlogPostTag {
 }
 
 model BlogPostStats {
-  id       String @id @default(cuid())
-  postId   String @unique
-  post     BlogPost   @relation(fields: [postId], references: [id], onDelete: Cascade)
-  
-  views    Int    @default(0)
-  likes    Int    @default(0)
-  comments Int    @default(0)
-  shares   Int    @default(0)
-  
+  id     String   @id @default(cuid())
+  postId String   @unique
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  views    Int @default(0)
+  likes    Int @default(0)
+  comments Int @default(0)
+  shares   Int @default(0)
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([postId])
   @@map("blog_post_stats")
 }
 
 // Optional: Untuk menyimpan komentar blog
 model BlogComment {
-  id        String   @id @default(cuid())
-  content   String   @db.Text
-  postId    String
-  post      BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
-  
+  id      String   @id @default(cuid())
+  content String   @db.Text
+  postId  String
+  post    BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+
   // Tambahkan relasi ke BlogAuthor
-  authorId    String?
-  author      BlogAuthor? @relation(fields: [authorId], references: [id])
-  
+  authorId String?
+  author   BlogAuthor? @relation(fields: [authorId], references: [id])
+
   // Atau tetap pakai field string untuk guest comments
   authorName  String?
   authorEmail String?
-  
-  parentId  String?
-  parent    BlogComment? @relation("BlogCommentReplies", fields: [parentId], references: [id])
-  replies   BlogComment[] @relation("BlogCommentReplies")
-  
+
+  parentId String?
+  parent   BlogComment?  @relation("BlogCommentReplies", fields: [parentId], references: [id])
+  replies  BlogComment[] @relation("BlogCommentReplies")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@index([postId])
   @@index([parentId])
   @@index([authorId])
   @@map("blog_comments")
 }
+
 
 // ===============================================
 // MODELS/SERVICES.PRISMA
@@ -325,14 +326,16 @@ model BlogComment {
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 model Service {
-  id          Int      @id @default(autoincrement())
-  icon        String // Store icon name as string
-  title       String
-  subtitle    String
-  description String   @db.Text
-  color       String // Store gradient color classes
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id             Int      @id @default(autoincrement())
+  icon           String // Store icon name as string
+  title          String
+  subtitle       String
+  description    String   @db.Text
+  color          String // Store gradient color classes
+  seoTitle       String?
+  seoDescription String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   // Relations
   features     ServiceFeature[]
@@ -351,12 +354,12 @@ model ServiceFeature {
 }
 
 model ServiceTechnology {
-  id           Int     @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   name         String
   serviceId    Int
   technologyId Int
   technology   Technology @relation(fields: [technologyId], references: [id])
-  service      Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  service      Service    @relation(fields: [serviceId], references: [id], onDelete: Cascade)
 
   @@unique([serviceId, technologyId])
   @@index([serviceId])

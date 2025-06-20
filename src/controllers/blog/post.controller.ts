@@ -14,32 +14,6 @@ const parsePaginationParams = (req: Request) => {
   return { page, limit, skip };
 };
 
-// Helper function to parse ordering parameters
-const parseOrderParams = (req: Request) => {
-  const orderBy = (req.query.orderBy as string) || 'publishedAt';
-  const order = (req.query.order as string) === 'asc' ? 'asc' : 'desc';
-
-  // Validate orderBy field to prevent SQL injection
-  const allowedOrderFields = [
-    'title', 'publishedAt', 'createdAt', 'updatedAt',
-    'views', 'likes', 'comments', 'shares'
-  ];
-
-  const validOrderBy = allowedOrderFields.includes(orderBy) ? orderBy : 'publishedAt';
-
-  // Handle stats ordering
-  if (['views', 'likes', 'comments', 'shares'].includes(validOrderBy)) {
-    return {
-      stats: {
-        [validOrderBy]: order
-      }
-    };
-  }
-
-  return {
-    [validOrderBy]: order
-  };
-};
 
 // Common include for post queries
 const getPostInclude = () => ({
@@ -60,7 +34,7 @@ const getPostInclude = () => ({
       tag: true
     }
   },
-  stats: true
+  stats: true,
 });
 
 const getSelectPost = () => ({
@@ -78,6 +52,8 @@ const getSelectPost = () => ({
     tags: { include: { tag: true } },
     stats: true,
     publishedAt: true,
+    seoTitle: true,
+    seoDescription: true,
     createdAt: true,
     updatedAt: true
   }
@@ -86,7 +62,7 @@ const getSelectPost = () => ({
 // Create new post
 export const createPost = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { title, excerpt, content, image, featured, authorId, categoryId, tags, readTime } = req.body;
+    const { title, excerpt, content, image, featured, authorId, categoryId, tags, readTime, seoTitle, seoDescription } = req.body;
 
     // Validate required fields
     if (!title || !excerpt || !content || !authorId || !categoryId) {
@@ -123,8 +99,10 @@ export const createPost = async (req: Request, res: Response): Promise<void> => 
         readTime,
         authorId,
         categoryId,
-        published: false, // Default to draft
-        publishedAt: undefined,
+        seoDescription,
+        seoTitle,
+        published: true, // Default to draft
+        publishedAt:  new Date(),
         tags: {
           create: tags?.map((tagId: string) => ({
             tag: { connect: { id: tagId } }
@@ -188,24 +166,7 @@ export const getAllPosts = async (req: Request, res: Response): Promise<void> =>
         skip,
         take: Number(limit),
         orderBy: orderByClause,
-        select: {
-          id: true,
-          title: true,
-          slug: true,
-          excerpt: true,
-          image: true,
-          featured: true,
-          published: true,
-          readTime: true,
-          author: true,
-          category: true,
-          tags: { include: { tag: true } },
-          stats: true,
-          comments: false,
-          publishedAt: true,
-          createdAt: true,
-          updatedAt: true,
-        }
+        ...getSelectPost()
       }),
       prisma.blogPost.count({ where: whereClause })
     ]);
@@ -394,6 +355,8 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
       tags,
       readTime,
       published,
+      seoDescription,
+      seoTitle
     } = req.body;
 
     if (!id) {
@@ -423,6 +386,8 @@ export const updatePost = async (req: Request, res: Response): Promise<void> => 
     if (featured !== undefined) updateData.featured = Boolean(featured);
     if (categoryId !== undefined) updateData.categoryId = categoryId;
     if (readTime !== undefined) updateData.readTime = readTime;
+    if (seoDescription !== undefined) updateData.seoDescription = seoDescription;
+    if (seoTitle !== undefined) updateData.seoTitle = seoTitle;
 
     // Handle perubahan published status
     if (published !== undefined) {
