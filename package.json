@@ -15,6 +15,7 @@
     "seed:about": "tsx prisma/seeders/aboutus.seeder.ts",
     "seed:team": "tsx prisma/seeders/teamMember.seeder.ts",
     "seed:hero": "tsx prisma/seeders/hero.seeder.ts",
+    "seed:contact": "tsx prisma/seeders/contact.seeder.ts",
     "build": "npm run schema:build && npm run db:generate && tsc",
     "start": "node dist/server.js",
     "dev": "npm run schema:build && ts-node-dev --respawn --transpile-only src/server.ts",

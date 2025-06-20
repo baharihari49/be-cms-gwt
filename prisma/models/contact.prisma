@@ -1,0 +1,9 @@
+model Contact {
+  id       Int    @id @default(autoincrement())
+  title    String
+  details  Json   // Simpan sebagai JSON array
+  color    String
+  href     String?
+  
+  @@map("contacts")
+}
