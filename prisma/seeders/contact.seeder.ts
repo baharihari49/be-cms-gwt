@@ -11,7 +11,7 @@ async function main() {
     data: [
       {
         title: 'Call Us',
-        details: ['(+62) 811-121-487', 'Mon-Fri: 9:00 AM - 6:00 PM', 'Sat: 10:00 AM - 4:00 PM'],
+        details: ['(+62)-813-8555-5749', 'Mon-Fri: 9:00 AM - 6:00 PM', 'Sat: 10:00 AM - 4:00 PM'],
         color: 'bg-gradient-to-r from-green-500 to-emerald-400',
         href: 'tel:+6281385555749'
       },
@@ -23,9 +23,9 @@ async function main() {
       },
       {
         title: 'Visit Us',
-        details: ['123 Tech Street', 'Silicon Valley, CA 94000', 'United States'],
+        details: ['Jl. BDN Raya No.7A, RT.5/RW.11, Cipete Sel., Kota Jakarta Selatan', ' Daerah Khusus Ibukota Jakarta'],
         color: 'bg-gradient-to-r from-purple-500 to-pink-400',
-        href: 'https://maps.google.com/?q=123+Tech+Street+Silicon+Valley+CA'
+        href: 'https://g.co/kgs/p57Zkwt'
       },
       {
         title: 'Working Hours',
