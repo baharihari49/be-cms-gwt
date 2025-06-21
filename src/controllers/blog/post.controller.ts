@@ -753,24 +753,24 @@ export const searchPosts = async (req: Request, res: Response): Promise<void> =>
         { published: true },
         {
           OR: [
-            { title: { contains: searchQuery, mode: 'insensitive' as const } },
-            { excerpt: { contains: searchQuery, mode: 'insensitive' as const } },
-            { content: { contains: searchQuery, mode: 'insensitive' as const } },
+            { title: { contains: searchQuery } },
+            { excerpt: { contains: searchQuery } },
+            { content: { contains: searchQuery } },
             {
               author: {
-                name: { contains: searchQuery, mode: 'insensitive' as const }
+                name: { contains: searchQuery }
               }
             },
             {
               category: {
-                name: { contains: searchQuery, mode: 'insensitive' as const }
+                name: { contains: searchQuery }
               }
             },
             {
               tags: {
                 some: {
                   tag: {
-                    name: { contains: searchQuery, mode: 'insensitive' as const }
+                    name: { contains: searchQuery }
                   }
                 }
               }
