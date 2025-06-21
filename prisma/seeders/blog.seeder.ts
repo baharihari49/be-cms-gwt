@@ -16,6 +16,7 @@ const authorsData = [
   {
     id: "cmbt1urar0000ww0q9brknzn0",
     name: "Bahari",
+    role: "Developer & Content Creator",
     email: "baharihari49@gmail.com",
     bio: "",
     avatar: ""
@@ -23,54 +24,63 @@ const authorsData = [
   {
     name: "Sarah Johnson",
     email: "sarah.johnson@example.com",
+    role: "Developer & Content Creator",
     bio: "Frontend Developer yang fokus pada UI/UX design dan React ecosystem. Suka menulis tentang best practices dalam pengembangan frontend.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-sarah_avatar.jpg"
   },
   {
     name: "David Chen",
     email: "david.chen@example.com",
+    role: "Developer & Content Creator",
     bio: "Backend Engineer dengan expertise dalam Node.js, Python, dan cloud infrastructure. Passionate tentang scalable architecture dan DevOps.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-david_avatar.jpg"
   },
   {
     name: "Alex Rodriguez",
     email: "alex.rodriguez@example.com",
+    role: "Developer & Content Creator",
     bio: "Mobile Developer specializing in React Native and Flutter. Passionate about creating smooth user experiences across different platforms.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-alex_avatar.jpg"
   },
   {
     name: "Emma Wilson",
     email: "emma.wilson@example.com", 
+    role: "Developer & Content Creator",
     bio: "DevOps Engineer dan Cloud Architect dengan pengalaman dalam AWS, Docker, dan Kubernetes. Fokus pada automation dan infrastructure as code.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-emma_avatar.jpg"
   },
   {
     name: "Michael Zhang",
     email: "michael.zhang@example.com",
+    role: "Developer & Content Creator",
     bio: "Data Scientist dan AI/ML Engineer. Specialized dalam machine learning, deep learning, dan data analytics untuk business solutions.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-michael_avatar.jpg"
   },
   {
     name: "Jessica Taylor",
     email: "jessica.taylor@example.com",
+    role: "Developer & Content Creator",
     bio: "UX/UI Designer dan Product Designer dengan 5+ tahun pengalaman. Passionate tentang user-centered design dan design systems.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-jessica_avatar.jpg"
   },
   {
     name: "Ryan Kumar",
     email: "ryan.kumar@example.com",
+    role: "Developer & Content Creator",
     bio: "Full Stack Developer dengan expertise dalam JavaScript ecosystem. Fokus pada performance optimization dan scalable web applications.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-ryan_avatar.jpg"
   },
   {
     name: "Lisa Anderson",
     email: "lisa.anderson@example.com",
+    role: "Developer & Content Creator",
     bio: "Cybersecurity Expert dan Penetration Tester. Specialized dalam web application security dan security best practices.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-lisa_avatar.jpg"
   },
   {
     name: "Ahmed Hassan",
     email: "ahmed.hassan@example.com", 
+    role: "Developer & Content Creator",
     bio: "Blockchain Developer dan Web3 Engineer. Experienced dalam smart contracts, DeFi protocols, dan decentralized applications.",
     avatar: "https://res.cloudinary.com/du0tz73ma/image/upload/v1748987310/author-ahmed_avatar.jpg"
   }
@@ -312,27 +322,53 @@ function MyComponent() {
   }
 ];
 
+// Function to clear all blog data
+async function clearAllBlogData() {
+  console.log('🗑️  Starting cleanup of all blog data...\n');
+  
+  try {
+    // Delete in correct order due to foreign key constraints
+    console.log('🗑️  Deleting blog post stats...');
+    await prisma.blogPostStats.deleteMany({});
+    
+    console.log('🗑️  Deleting blog post tags relationships...');
+    await prisma.blogPostTag.deleteMany({});
+    
+    console.log('🗑️  Deleting blog posts...');
+    await prisma.blogPost.deleteMany({});
+    
+    console.log('🗑️  Deleting blog tags...');
+    await prisma.blogTag.deleteMany({});
+    
+    console.log('🗑️  Deleting blog categories...');
+    await prisma.blogCategory.deleteMany({});
+    
+    console.log('🗑️  Deleting blog authors...');
+    await prisma.blogAuthor.deleteMany({});
+    
+    console.log('✅ All blog data cleared successfully!\n');
+  } catch (error) {
+    console.error('❌ Error clearing blog data:', error);
+    throw error;
+  }
+}
+
 async function seedAuthors() {
   console.log('🌱 Seeding blog authors...');
   
   for (const author of authorsData) {
     try {
-      await prisma.blogAuthor.upsert({
-        where: { email: author.email },
-        update: {
-          name: author.name,
-          bio: author.bio,
-          avatar: author.avatar
-        },
-        create: {
+      await prisma.blogAuthor.create({
+        data: {
           id: author.id || undefined,
           name: author.name,
+          role: author.role,
           email: author.email,
           bio: author.bio,
           avatar: author.avatar
         }
       });
-      console.log(`✅ Author created/updated: ${author.name}`);
+      console.log(`✅ Author created: ${author.name}`);
     } catch (error) {
       console.error(`❌ Error creating author ${author.name}:`, error);
     }
@@ -346,15 +382,8 @@ async function seedCategories() {
   
   for (const category of categoriesData) {
     try {
-      await prisma.blogCategory.upsert({
-        where: { name: category.name },
-        update: {
-          slug: category.slug || generateSlug(category.name),
-          description: category.description,
-          icon: category.icon,
-          color: category.color
-        },
-        create: {
+      await prisma.blogCategory.create({
+        data: {
           id: category.id || undefined,
           name: category.name,
           slug: category.slug || generateSlug(category.name),
@@ -364,7 +393,7 @@ async function seedCategories() {
           postCount: 0
         }
       });
-      console.log(`✅ Blog category created/updated: ${category.name}`);
+      console.log(`✅ Blog category created: ${category.name}`);
     } catch (error) {
       console.error(`❌ Error creating blog category ${category.name}:`, error);
     }
@@ -378,17 +407,13 @@ async function seedTags() {
   
   for (const tagName of tagsData) {
     try {
-      await prisma.blogTag.upsert({
-        where: { name: tagName },
-        update: {
-          slug: generateSlug(tagName)
-        },
-        create: {
+      await prisma.blogTag.create({
+        data: {
           name: tagName,
           slug: generateSlug(tagName)
         }
       });
-      console.log(`✅ Blog tag created/updated: ${tagName}`);
+      console.log(`✅ Blog tag created: ${tagName}`);
     } catch (error) {
       console.error(`❌ Error creating blog tag ${tagName}:`, error);
     }
@@ -426,22 +451,9 @@ async function seedPosts() {
         categoryId = category?.id || categories[0].id;
       }
 
-      // Create or update blog post
-      const post = await prisma.blogPost.upsert({
-        where: { slug: postData.slug || generateSlug(postData.title) },
-        update: {
-          title: postData.title,
-          excerpt: postData.excerpt,
-          content: postData.content,
-          image: postData.image,
-          featured: postData.featured,
-          published: postData.published,
-          readTime: postData.readTime,
-          authorId: authorId,
-          categoryId: categoryId,
-          publishedAt: postData.publishedAt ? new Date(postData.publishedAt) : new Date()
-        },
-        create: {
+      // Create blog post
+      const post = await prisma.blogPost.create({
+        data: {
           id: postData.id || undefined,
           title: postData.title,
           slug: postData.slug || generateSlug(postData.title),
@@ -458,10 +470,6 @@ async function seedPosts() {
       });
 
       // Handle post tags (many-to-many)
-      await prisma.blogPostTag.deleteMany({
-        where: { postId: post.id }
-      });
-
       for (const tagName of postData.tags) {
         const tag = await prisma.blogTag.findUnique({
           where: { name: tagName }
@@ -477,16 +485,9 @@ async function seedPosts() {
         }
       }
 
-      // Create or update post stats
-      await prisma.blogPostStats.upsert({
-        where: { postId: post.id },
-        update: {
-          views: postData.stats.views,
-          likes: postData.stats.likes,
-          comments: postData.stats.comments,
-          shares: postData.stats.shares
-        },
-        create: {
+      // Create post stats
+      await prisma.blogPostStats.create({
+        data: {
           postId: post.id,
           views: postData.stats.views,
           likes: postData.stats.likes,
@@ -495,7 +496,7 @@ async function seedPosts() {
         }
       });
 
-      console.log(`✅ Blog post created/updated: ${postData.title}`);
+      console.log(`✅ Blog post created: ${postData.title}`);
     } catch (error) {
       console.error(`❌ Error creating blog post ${postData.title}:`, error);
     }
@@ -533,18 +534,17 @@ async function updateCategoryCounts() {
 }
 
 async function main() {
-  console.log('🚀 Starting blog seeder...\n');
+  console.log('🚀 Starting blog seeder with data cleanup...\n');
   
   try {
-    // Seed master data first
+    // Clear all existing blog data first
+    await clearAllBlogData();
+    
+    // Seed fresh data
     await seedAuthors();
     await seedCategories();
     await seedTags();
-    
-    // Seed posts with relations
     await seedPosts();
-    
-    // Update category counts
     await updateCategoryCounts();
         
     console.log('🎉 Blog seeding completed successfully!');

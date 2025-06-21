@@ -22,6 +22,7 @@ const getPostInclude = () => ({
       id: true,
       name: true,
       email: true,
+      role: true,
       bio: true,
       avatar: true,
       createdAt: true,
@@ -217,7 +218,272 @@ export const getFeaturedPosts = async (req: Request, res: Response): Promise<voi
   }
 };
 
-// Get post by ID
+// Helper function to get related articles
+const getRelatedArticles = async (currentPost: any, limit: number = 6) => {
+  const relatedArticles: any[] = [];
+  const usedPostIds = new Set([currentPost.id]);
+
+  // Extract current post's tag IDs for comparison
+  const currentTagIds = currentPost.tags?.map((pt: any) => pt.tagId) || [];
+
+  try {
+    // PRIORITY 1: Same category + at least 1 common tag
+    if (relatedArticles.length < limit && currentTagIds.length > 0) {
+      const sameCategoryWithTags = await prisma.blogPost.findMany({
+        where: {
+          id: { not: currentPost.id },
+          published: true,
+          categoryId: currentPost.categoryId,
+          tags: {
+            some: {
+              tagId: { in: currentTagIds }
+            }
+          }
+        },
+        take: limit,
+        orderBy: [
+          { featured: 'desc' },
+          { stats: { views: 'desc' } },
+          { publishedAt: 'desc' }
+        ],
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          image: true,
+          featured: true,
+          readTime: true,
+          publishedAt: true,
+          author: {
+            select: { id: true, name: true, avatar: true }
+          },
+          category: {
+            select: { id: true, name: true, slug: true }
+          },
+          tags: {
+            include: {
+              tag: { select: { id: true, name: true } }
+            }
+          },
+          stats: {
+            select: { views: true, likes: true }
+          }
+        }
+      });
+
+      sameCategoryWithTags.forEach(post => {
+        if (!usedPostIds.has(post.id)) {
+          relatedArticles.push(post);
+          usedPostIds.add(post.id);
+        }
+      });
+    }
+
+    // PRIORITY 2: Same category (remaining posts)
+    if (relatedArticles.length < limit) {
+      const remainingFromCategory = await prisma.blogPost.findMany({
+        where: {
+          id: { not: { in: Array.from(usedPostIds) } },
+          published: true,
+          categoryId: currentPost.categoryId
+        },
+        take: limit - relatedArticles.length,
+        orderBy: [
+          { featured: 'desc' },
+          { stats: { views: 'desc' } },
+          { publishedAt: 'desc' }
+        ],
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          image: true,
+          featured: true,
+          readTime: true,
+          publishedAt: true,
+          author: {
+            select: { id: true, name: true, avatar: true }
+          },
+          category: {
+            select: { id: true, name: true, slug: true }
+          },
+          tags: {
+            include: {
+              tag: { select: { id: true, name: true } }
+            }
+          },
+          stats: {
+            select: { views: true, likes: true }
+          }
+        }
+      });
+
+      remainingFromCategory.forEach(post => {
+        if (!usedPostIds.has(post.id)) {
+          relatedArticles.push(post);
+          usedPostIds.add(post.id);
+        }
+      });
+    }
+
+    // PRIORITY 3: Same tags but different category
+    if (relatedArticles.length < limit && currentTagIds.length > 0) {
+      const sameTagsDiffCategory = await prisma.blogPost.findMany({
+        where: {
+          id: { not: { in: Array.from(usedPostIds) } },
+          published: true,
+          categoryId: { not: currentPost.categoryId },
+          tags: {
+            some: {
+              tagId: { in: currentTagIds }
+            }
+          }
+        },
+        take: limit - relatedArticles.length,
+        orderBy: [
+          { featured: 'desc' },
+          { stats: { views: 'desc' } },
+          { publishedAt: 'desc' }
+        ],
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          image: true,
+          featured: true,
+          readTime: true,
+          publishedAt: true,
+          author: {
+            select: { id: true, name: true, avatar: true }
+          },
+          category: {
+            select: { id: true, name: true, slug: true }
+          },
+          tags: {
+            include: {
+              tag: { select: { id: true, name: true } }
+            }
+          },
+          stats: {
+            select: { views: true, likes: true }
+          }
+        }
+      });
+
+      sameTagsDiffCategory.forEach(post => {
+        if (!usedPostIds.has(post.id)) {
+          relatedArticles.push(post);
+          usedPostIds.add(post.id);
+        }
+      });
+    }
+
+    // PRIORITY 4: Same author
+    if (relatedArticles.length < limit) {
+      const sameAuthor = await prisma.blogPost.findMany({
+        where: {
+          id: { not: { in: Array.from(usedPostIds) } },
+          published: true,
+          authorId: currentPost.authorId
+        },
+        take: limit - relatedArticles.length,
+        orderBy: [
+          { featured: 'desc' },
+          { stats: { views: 'desc' } },
+          { publishedAt: 'desc' }
+        ],
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          image: true,
+          featured: true,
+          readTime: true,
+          publishedAt: true,
+          author: {
+            select: { id: true, name: true, avatar: true }
+          },
+          category: {
+            select: { id: true, name: true, slug: true }
+          },
+          tags: {
+            include: {
+              tag: { select: { id: true, name: true } }
+            }
+          },
+          stats: {
+            select: { views: true, likes: true }
+          }
+        }
+      });
+
+      sameAuthor.forEach(post => {
+        if (!usedPostIds.has(post.id)) {
+          relatedArticles.push(post);
+          usedPostIds.add(post.id);
+        }
+      });
+    }
+
+    // FALLBACK: Popular posts if still not enough
+    if (relatedArticles.length < limit) {
+      const popularPosts = await prisma.blogPost.findMany({
+        where: {
+          id: { not: { in: Array.from(usedPostIds) } },
+          published: true
+        },
+        take: limit - relatedArticles.length,
+        orderBy: [
+          { featured: 'desc' },
+          { stats: { views: 'desc' } },
+          { publishedAt: 'desc' }
+        ],
+        select: {
+          id: true,
+          title: true,
+          slug: true,
+          excerpt: true,
+          image: true,
+          featured: true,
+          readTime: true,
+          publishedAt: true,
+          author: {
+            select: { id: true, name: true, avatar: true }
+          },
+          category: {
+            select: { id: true, name: true, slug: true }
+          },
+          tags: {
+            include: {
+              tag: { select: { id: true, name: true } }
+            }
+          },
+          stats: {
+            select: { views: true, likes: true }
+          }
+        }
+      });
+
+      popularPosts.forEach(post => {
+        if (!usedPostIds.has(post.id)) {
+          relatedArticles.push(post);
+          usedPostIds.add(post.id);
+        }
+      });
+    }
+
+    return relatedArticles.slice(0, limit);
+  } catch (error) {
+    console.error('Error fetching related articles:', error);
+    return [];
+  }
+};
+
+// Updated getPostById with related articles
 export const getPostById = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params;
@@ -258,6 +524,9 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    // Get related articles
+    const relatedArticles = await getRelatedArticles(post, 6);
+
     // Increment view count asynchronously
     prisma.blogPostStats.update({
       where: { postId: id },
@@ -268,7 +537,11 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
 
     res.json({
       success: true,
-      post
+      post,
+      relatedArticles: {
+        count: relatedArticles.length,
+        articles: relatedArticles
+      }
     });
   } catch (error: any) {
     console.error('Get post by ID error:', error);
@@ -279,7 +552,7 @@ export const getPostById = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-// Get post by slug
+// Updated getPostBySlug with related articles
 export const getPostBySlug = async (req: Request, res: Response): Promise<void> => {
   try {
     const { slug } = req.params;
@@ -299,12 +572,12 @@ export const getPostBySlug = async (req: Request, res: Response): Promise<void> 
             replies: {
               include: {
                 author: {
-                  select: { id: true, name: true, avatar: true }
+                  select: { id: true, name: true, avatar: true, role: true }
                 }
               }
             },
             author: {
-              select: { id: true, name: true, avatar: true }
+              select: { id: true, name: true, avatar: true, role: true }
             }
           },
           orderBy: { createdAt: 'desc' }
@@ -320,6 +593,9 @@ export const getPostBySlug = async (req: Request, res: Response): Promise<void> 
       return;
     }
 
+    // Get related articles
+    const relatedArticles = await getRelatedArticles(post, 6);
+
     // Increment view count asynchronously
     prisma.blogPostStats.update({
       where: { postId: post.id },
@@ -330,7 +606,11 @@ export const getPostBySlug = async (req: Request, res: Response): Promise<void> 
 
     res.json({
       success: true,
-      post
+      post,
+      relatedArticles: {
+        count: relatedArticles.length,
+        articles: relatedArticles
+      }
     });
   } catch (error: any) {
     console.error('Get post by slug error:', error);

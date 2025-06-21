@@ -185,6 +185,7 @@ enum ImageType {
 model BlogAuthor {
   id        String        @id @default(cuid())
   name      String
+  role      String?
   email     String?       @unique
   bio       String?       @db.Text
   avatar    String?
