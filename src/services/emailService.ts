@@ -82,7 +82,6 @@ export const sendCustomerEmail = async (data: CustomerEmailData): Promise<EmailR
     })
   };
 
-  console.log('Sending customer email...');
   
   try {
     const resendPromise = resend.emails.send(emailOptions) as Promise<ResendResponse>;

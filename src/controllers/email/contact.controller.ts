@@ -31,7 +31,6 @@ export const sendContactEmail = async (
       return;
     }
 
-    console.log('Sending emails...');
     
     // Send email to admin
     const adminEmailResult: EmailResponse = await sendAdminEmail({
@@ -47,7 +46,6 @@ export const sendContactEmail = async (
       return;
     }
     
-    console.log('Admin email sent:', adminEmailResult);
 
     // Send auto-reply to customer
     const customerEmailResult: EmailResponse = await sendCustomerEmail({
@@ -60,7 +58,6 @@ export const sendContactEmail = async (
       console.warn('Customer email failed but admin email was sent successfully');
     }
     
-    console.log('Customer email sent:', customerEmailResult);
 
     // Success response
     res.status(200).json({
@@ -74,7 +71,6 @@ export const sendContactEmail = async (
     });
 
   } catch (error) {
-    console.error('Error sending email:', error);
     
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     

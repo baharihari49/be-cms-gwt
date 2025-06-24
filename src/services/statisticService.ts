@@ -1,120 +1,217 @@
-// services/statisticService.ts
-import { Prisma, PrismaClient } from '@prisma/client';
-import { 
-  Statistic,
-  StatisticCreateInput,
-  StatisticUpdateInput,
-  StatisticQueryOptions
-} from '../types/statistic/statisticTypes';
+// src/services/statisticService.ts
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
+// Local interfaces (tidak perlu import external)
+interface StatisticResult {
+  icon: string;
+  number: string;
+  label: string;
+}
+
+interface DebugResult {
+  clients: {
+    total: number;
+    active: number;
+    industries: string[];
+    data: any[];
+  };
+  testimonials: {
+    total: number;
+    withRating: number;
+    data: any[];
+  };
+  statistics: {
+    total: number;
+    data: any[];
+  };
+}
+
 class StatisticService {
-  // Get all statistics
-  async getAllStatistics(options: StatisticQueryOptions = {}): Promise<Statistic[]> {
-    const { skip, take, orderBy, where } = options;
-    
+  // Method utama: Hitung dan return statistics real-time
+  async getStatisticsRealTime(): Promise<StatisticResult[]> {
     try {
-      const statistics = await prisma.statistic.findMany({
-        where: where || undefined,
-        skip: skip || 0,
-        take: take || undefined,
-        orderBy: orderBy || { order: 'asc' }
+
+      // 1. Hitung Happy Clients dari tabel clients yang isActive = true
+      const happyClientsCount = await prisma.client.count({
+        where: { isActive: true }
+      });
+
+      // 2. Hitung Industries Served dari DISTINCT industry di tabel clients
+      const industriesServed = await prisma.client.findMany({
+        select: { industry: true },
+        distinct: ['industry'],
+        where: { isActive: true }
+      });
+      const industriesCount = industriesServed.length;
+
+      // 3. Countries (hardcode untuk sekarang)
+      const countriesCount = 1;
+
+      // 4. Success Rate berdasarkan rata-rata rating dari testimonials
+      const testimonialStats = await prisma.testimonial.aggregate({
+        _avg: { rating: true },
+        _count: { rating: true },
+        where: { 
+          rating: { not: null },
+          client: { isActive: true }
+        }
       });
       
+      
+      // Convert rating (0-5) ke percentage
+      const successRate = testimonialStats._avg.rating 
+        ? Math.round((testimonialStats._avg.rating / 5) * 100)
+        : 98;
+
+      // 5. Return data
+      const statistics: StatisticResult[] = [
+        {
+          icon: 'Users',
+          number: happyClientsCount > 0 ? `${happyClientsCount}+` : '0',
+          label: 'Happy Clients'
+        },
+        {
+          icon: 'Building', 
+          number: industriesCount > 0 ? `${industriesCount}+` : '1+',
+          label: 'Industries Served'
+        },
+        {
+          icon: 'Globe',
+          number: `${countriesCount}+`, 
+          label: 'Countries'
+        },
+        {
+          icon: 'TrendingUp',
+          number: `${successRate}%`,
+          label: 'Success Rate'
+        }
+      ];
+
       return statistics;
-    } catch (error: any) {
-      throw new Error(`Failed to fetch statistics: ${error.message}`);
+
+    } catch (error: unknown) {
+      console.error('❌ Error calculating real-time statistics:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to calculate statistics: ${errorMessage}`);
     }
   }
 
-  // Get statistic by ID
-  async getStatisticById(id: number): Promise<Statistic> {
+  // Method untuk save ke database
+  async saveStatisticsToDatabase(): Promise<StatisticResult[]> {
     try {
-      const statistic = await prisma.statistic.findUnique({
-        where: { id }
-      });
+      const realTimeStats = await this.getStatisticsRealTime();
+      
 
-      if (!statistic) {
-        throw new Error('Statistic not found');
+      // Cara 1: Cari berdasarkan label, lalu update atau create
+      for (let i = 0; i < realTimeStats.length; i++) {
+        const stat = realTimeStats[i];
+        
+        // Cari existing statistic berdasarkan label
+        const existingStat = await prisma.statistic.findFirst({
+          where: { label: stat.label }
+        });
+
+        if (existingStat) {
+          // Update jika sudah ada
+          await prisma.statistic.update({
+            where: { id: existingStat.id },
+            data: {
+              number: stat.number,
+              icon: stat.icon,
+              order: i + 1,
+              isActive: true
+            }
+          });
+        } else {
+          // Create jika belum ada
+          await prisma.statistic.create({
+            data: {
+              ...stat,
+              order: i + 1,
+              isActive: true
+            }
+          });
+        }
       }
 
-      return statistic;
-    } catch (error: any) {
-      throw new Error(`Failed to fetch statistic: ${error.message}`);
+      return realTimeStats;
+
+    } catch (error: unknown) {
+      console.error('❌ Error saving statistics:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to save statistics: ${errorMessage}`);
     }
   }
 
-  // Create new statistic
-  async createStatistic(data: StatisticCreateInput): Promise<Statistic> {
+  // Method untuk get dari database
+  async getStoredStatistics(): Promise<StatisticResult[]> {
     try {
-      const { icon, number, label, order, isActive } = data;
-
-      const statistic = await prisma.statistic.create({
-        data: {
-          icon: icon.trim(),
-          number: number.trim(),
-          label: label.trim(),
-          order: order || 0,
-          isActive: isActive !== undefined ? isActive : true
+      const stored = await prisma.statistic.findMany({
+        where: { isActive: true },
+        orderBy: { order: 'asc' },
+        select: {
+          icon: true,
+          number: true,
+          label: true
         }
       });
 
-      return statistic;
-    } catch (error: any) {
-      throw new Error(`Failed to create statistic: ${error.message}`);
+      return stored;
+    } catch (error: unknown) {
+      console.error('❌ Error getting stored statistics:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to get stored statistics: ${errorMessage}`);
     }
   }
 
-  // Update statistic
-  async updateStatistic(id: number, data: StatisticUpdateInput): Promise<Statistic> {
+  // Method untuk debugging
+  async debugDatabaseContent(): Promise<DebugResult> {
     try {
-      // Check if statistic exists
-      await this.getStatisticById(id);
+      const [clients, testimonials, statistics] = await Promise.all([
+        prisma.client.findMany({
+          select: {
+            id: true,
+            name: true,
+            industry: true,
+            isActive: true
+          }
+        }),
+        prisma.testimonial.findMany({
+          select: {
+            id: true,
+            rating: true,
+            author: true,
+            client: {
+              select: { name: true, isActive: true }
+            }
+          }
+        }),
+        prisma.statistic.findMany()
+      ]);
 
-      const updateData: Prisma.StatisticUpdateInput = {};
-      if (data.icon !== undefined) updateData.icon = data.icon.trim();
-      if (data.number !== undefined) updateData.number = data.number.trim();
-      if (data.label !== undefined) updateData.label = data.label.trim();
-      if (data.order !== undefined) updateData.order = data.order;
-      if (data.isActive !== undefined) updateData.isActive = data.isActive;
-
-      const updatedStatistic = await prisma.statistic.update({
-        where: { id },
-        data: updateData
-      });
-
-      return updatedStatistic;
-    } catch (error: any) {
-      throw new Error(`Failed to update statistic: ${error.message}`);
-    }
-  }
-
-  // Delete statistic
-  async deleteStatistic(id: number): Promise<{ message: string }> {
-    try {
-      // Check if statistic exists
-      await this.getStatisticById(id);
-
-      await prisma.statistic.delete({
-        where: { id }
-      });
-
-      return { message: 'Statistic deleted successfully' };
-    } catch (error: any) {
-      throw new Error(`Failed to delete statistic: ${error.message}`);
-    }
-  }
-
-  // Get statistics count
-  async getStatisticsCount(filters: any = {}): Promise<number> {
-    try {
-      const count = await prisma.statistic.count({
-        where: filters
-      });
-      return count;
-    } catch (error: any) {
-      throw new Error(`Failed to count statistics: ${error.message}`);
+      return {
+        clients: {
+          total: clients.length,
+          active: clients.filter(c => c.isActive).length,
+          industries: [...new Set(clients.filter(c => c.isActive).map(c => c.industry))],
+          data: clients
+        },
+        testimonials: {
+          total: testimonials.length,
+          withRating: testimonials.filter(t => t.rating !== null).length,
+          data: testimonials
+        },
+        statistics: {
+          total: statistics.length,
+          data: statistics
+        }
+      };
+    } catch (error: unknown) {
+      console.error('❌ Error debugging database:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to debug database: ${errorMessage}`);
     }
   }
 }
