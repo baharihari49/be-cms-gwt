@@ -36,12 +36,13 @@ jobs:
           NODE_ENV=production
           PORT=3012
           JWT_SECRET="${{ secrets.JWT_SECRET_PROD }}"
-          RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
-          VERIFIED_EMAIL_DOMAIN="${{ secrets.VERIFIED_EMAIL_DOMAIN }}"
-          BUSINESS_EMAIL="${{ secrets.BUSINESS_EMAIL }}"
           CLOUDINARY_CLOUD_NAME="${{ secrets.CLOUDINARY_CLOUD_NAME }}"
           CLOUDINARY_API_KEY="${{ secrets.CLOUDINARY_API_KEY }}"
-          CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_API_SECRET="${{ secrets.CLOUDINARY_API_SECRET }}"
+          MAILGUN_API_KEY="${{ secrets.MAILGUN_API_KEY }}"
+          MAILGUN_DOMAIN="${{ secrets.MAILGUN_DOMAIN }}"
+          VERIFIED_EMAIL_DOMAIN="${{ secrets.VERIFIED_EMAIL_DOMAIN }}"
+          BUSINESS_EMAIL="${{ secrets.BUSINESS_EMAIL }}"
           EOF
           echo "✅ Environment file created from secrets (root only)"
 
@@ -125,12 +126,13 @@ jobs:
           NODE_ENV=production
           PORT=3012
           JWT_SECRET="${{ secrets.JWT_SECRET_PROD }}"
-          RESEND_API_KEY="${{ secrets.RESEND_API_KEY }}"
-          VERIFIED_EMAIL_DOMAIN="${{ secrets.VERIFIED_EMAIL_DOMAIN }}"
-          BUSINESS_EMAIL="${{ secrets.BUSINESS_EMAIL }}"
           CLOUDINARY_CLOUD_NAME="${{ secrets.CLOUDINARY_CLOUD_NAME }}"
           CLOUDINARY_API_KEY="${{ secrets.CLOUDINARY_API_KEY }}"
-          CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}
+          CLOUDINARY_API_SECRET="${{ secrets.CLOUDINARY_API_SECRET }}"
+          MAILGUN_API_KEY="${{ secrets.MAILGUN_API_KEY }}"
+          MAILGUN_DOMAIN="${{ secrets.MAILGUN_DOMAIN }}"
+          VERIFIED_EMAIL_DOMAIN="${{ secrets.VERIFIED_EMAIL_DOMAIN }}"
+          BUSINESS_EMAIL="${{ secrets.BUSINESS_EMAIL }}"
           EOF
           chmod 600 .env &&
           chown www-data:www-data .env &&
