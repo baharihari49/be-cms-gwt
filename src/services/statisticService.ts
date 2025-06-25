@@ -28,11 +28,33 @@ interface DebugResult {
   };
 }
 
+interface StatisticCreateData {
+  icon: string;
+  number: string;
+  label: string;
+  order: number;
+  isActive: boolean;
+}
+
+interface StatisticUpdateData {
+  icon?: string;
+  number?: string;
+  label?: string;
+  order?: number;
+  isActive?: boolean;
+}
+
+interface QueryOptions {
+  where?: any;
+  skip?: number;
+  take?: number;
+  orderBy?: any;
+}
+
 class StatisticService {
   // Method utama: Hitung dan return statistics real-time
   async getStatisticsRealTime(): Promise<StatisticResult[]> {
     try {
-
       // 1. Hitung Happy Clients dari tabel clients yang isActive = true
       const happyClientsCount = await prisma.client.count({
         where: { isActive: true }
@@ -58,7 +80,6 @@ class StatisticService {
           client: { isActive: true }
         }
       });
-      
       
       // Convert rating (0-5) ke percentage
       const successRate = testimonialStats._avg.rating 
@@ -103,7 +124,6 @@ class StatisticService {
     try {
       const realTimeStats = await this.getStatisticsRealTime();
       
-
       // Cara 1: Cari berdasarkan label, lalu update atau create
       for (let i = 0; i < realTimeStats.length; i++) {
         const stat = realTimeStats[i];
@@ -163,6 +183,154 @@ class StatisticService {
       console.error('❌ Error getting stored statistics:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       throw new Error(`Failed to get stored statistics: ${errorMessage}`);
+    }
+  }
+
+  // ======= MISSING METHODS UNTUK CONTROLLER =======
+
+  // GET ALL with pagination and filtering
+  async getAllStatistics(options: QueryOptions) {
+    try {
+      const statistics = await prisma.statistic.findMany({
+        where: options.where || {},
+        skip: options.skip || 0,
+        take: options.take || 10,
+        orderBy: options.orderBy || { order: 'asc' }
+      });
+
+      return statistics;
+    } catch (error: unknown) {
+      console.error('❌ Error getting all statistics:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to get statistics: ${errorMessage}`);
+    }
+  }
+
+  // GET COUNT for pagination
+  async getStatisticsCount(where?: any): Promise<number> {
+    try {
+      const count = await prisma.statistic.count({
+        where: where || {}
+      });
+      return count;
+    } catch (error: unknown) {
+      console.error('❌ Error counting statistics:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to count statistics: ${errorMessage}`);
+    }
+  }
+
+  // GET BY ID
+  async getStatisticById(id: number) {
+    try {
+      const statistic = await prisma.statistic.findUnique({
+        where: { id }
+      });
+
+      if (!statistic) {
+        throw new Error(`Statistic with ID ${id} not found`);
+      }
+
+      return statistic;
+    } catch (error: unknown) {
+      console.error('❌ Error getting statistic by ID:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to get statistic: ${errorMessage}`);
+    }
+  }
+
+  // CREATE
+  async createStatistic(data: StatisticCreateData) {
+    try {
+      // Check if label already exists
+      const existingStatistic = await prisma.statistic.findFirst({
+        where: { label: data.label }
+      });
+
+      if (existingStatistic) {
+        throw new Error(`Statistic with label "${data.label}" already exists`);
+      }
+
+      const statistic = await prisma.statistic.create({
+        data: {
+          icon: data.icon,
+          number: data.number,
+          label: data.label,
+          order: data.order,
+          isActive: data.isActive
+        }
+      });
+
+      return statistic;
+    } catch (error: unknown) {
+      console.error('❌ Error creating statistic:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to create statistic: ${errorMessage}`);
+    }
+  }
+
+  // UPDATE
+  async updateStatistic(id: number, data: StatisticUpdateData) {
+    try {
+      // Check if statistic exists
+      const existingStatistic = await prisma.statistic.findUnique({
+        where: { id }
+      });
+
+      if (!existingStatistic) {
+        throw new Error(`Statistic with ID ${id} not found`);
+      }
+
+      // Check if label already exists (if updating label)
+      if (data.label && data.label !== existingStatistic.label) {
+        const labelExists = await prisma.statistic.findFirst({
+          where: { 
+            label: data.label,
+            id: { not: id }
+          }
+        });
+
+        if (labelExists) {
+          throw new Error(`Statistic with label "${data.label}" already exists`);
+        }
+      }
+
+      const statistic = await prisma.statistic.update({
+        where: { id },
+        data: data
+      });
+
+      return statistic;
+    } catch (error: unknown) {
+      console.error('❌ Error updating statistic:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to update statistic: ${errorMessage}`);
+    }
+  }
+
+  // DELETE
+  async deleteStatistic(id: number) {
+    try {
+      // Check if statistic exists
+      const existingStatistic = await prisma.statistic.findUnique({
+        where: { id }
+      });
+
+      if (!existingStatistic) {
+        throw new Error(`Statistic with ID ${id} not found`);
+      }
+
+      await prisma.statistic.delete({
+        where: { id }
+      });
+
+      return {
+        message: `Statistic "${existingStatistic.label}" deleted successfully`
+      };
+    } catch (error: unknown) {
+      console.error('❌ Error deleting statistic:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to delete statistic: ${errorMessage}`);
     }
   }
 
