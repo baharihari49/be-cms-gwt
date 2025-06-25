@@ -1,4 +1,4 @@
-// controllers/contactController.ts
+// controllers/contact.controller.ts
 import { Request, Response } from 'express';
 import contactService from '../../services/contactService';
 import {
